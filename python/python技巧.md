@@ -32,7 +32,7 @@ PEPE 8是针对Python代码格式而编写的风格指南.目的是让每个开�
 对于数据较少的列表来说,我们需要改变列表中每个元素的内容,这时应该使用列表推导式而不是map, filter或自定义函数。
 
 ```python
-In [1]: a = [1,2,3,4,5,6] 
+In [1]: a = [1,2,3,4,5,6]
 In [2]: [x * 2 for x in a ]
 Out[2]: [2, 4, 6, 8, 10, 12]
 ```
@@ -52,22 +52,22 @@ In [6]: a = (print(x) for x in open('/etc/passwd'))
 Python为for和while两种循环都添加了else语法,但实际使用起来并不是很好用,由于对`if else`的理解,我们很容易理解为如果循环没有正常执行,那么就执行else块。 但实际却刚好相反。
 
 ```python
-In [9]: for i in [1,2,3]: 
-   ...:     print(i) 
-   ...:     if i ==2: 
-   ...:         break 
-   ...: else: 
-   ...:     print('else break')                                                                               
+In [9]: for i in [1,2,3]:
+   ...:     print(i)
+   ...:     if i ==2:
+   ...:         break
+   ...: else:
+   ...:     print('else break')
 1
 2
 ```
 
 ```python
-In [10]: for i in [1,2,3]: 
-    ...:     print(i) 
-    ...: else: 
-    ...:     print('else break') 
-    ...:                                                                                      
+In [10]: for i in [1,2,3]:
+    ...:     print(i)
+    ...: else:
+    ...:     print('else break')
+    ...:
 1
 2
 3
@@ -142,13 +142,13 @@ def do_alarm(alerm_type, *args, **kwargs):
 Python中读取文件使用的是`Open`函数,但是这样有一个非常大的缺点,我们总是在读取完文件后忘记关闭文件描述符,所以我们通常采用`with`语句来管理读取的文件对象,这样在`with`语句结束后会自行帮我们关闭文件描述符.
 
 ```python
-In [11]: with open('/etc/passwd') as file: 
-    ...:     print(file.read()) 
+In [11]: with open('/etc/passwd') as file:
+    ...:     print(file.read())
 ```
 
 这里我们只解决文件描述符关闭的问题,但对于大文件读取我们任然需要注意。 `file.read()`是将文件中的内容一次性的全部读取完毕，如果是一个10G那么仅仅一个文件读操作就消耗了所有的内存。
 
-通常，我们有两种做法来解决这个问题。 
+通常，我们有两种做法来解决这个问题。
 
 1. 分片读取,每次读取一定量的数据字节,这和`readline()`或`readlines()`是同一个道理。
 2. *生成器解耦*,这是生成器的强项.
@@ -192,11 +192,11 @@ x, y = y,x
 #### 12. 列表去重
 
 ```python
-In [24]: l = [1,2,2,3,3,3] 
+In [24]: l = [1,2,2,3,3,3]
 In [26]: {}.fromkeys(l).keys()
 Out[26]: dict_keys([1, 2, 3])
-    
-In [27]: list(set(l))                                                                     
+
+In [27]: list(set(l))
 Out[27]: [1, 2, 3]
 ```
 
@@ -206,9 +206,9 @@ Out[27]: [1, 2, 3]
 In [29]: l = [ random.randint(1,50) for i in range(100000)]
 In [33]: %time {}.fromkeys(l).keys()                                                     CPU times: user 1.91 ms, sys: 0 ns, total: 1.91 ms
 Wall time: 1.91 ms
-    
+
 In [34]: %time list(set(l))                                                               CPU times: user 952 µs, sys: 0 ns, total: 952 µs
-Wall time: 954 µs    
+Wall time: 954 µs
 ```
 
 可以看到第二种方法效率更高。
@@ -236,23 +236,23 @@ AttributeError: 'User' object has no attribute 'title
 **Count 统计频率**
 
 ```python
-In [44]: a = collections.Counter(l)                                                       
+In [44]: a = collections.Counter(l)
 In [45]: a.most_common()                                                                  Out[45]: [(6, 5), (1, 3), (5, 3), (9, 2), (3, 2), (2, 2), (10, 1), (8, 1), (7, 1)]
 ```
 
 **deque优化的列表**
 
 ```python
-In [47]: collections.deque?                                                               
+In [47]: collections.deque?
 Init signature: collections.deque(self, /, *args, **kwargs)
-Docstring:     
+Docstring:
 deque([iterable[, maxlen]]) --> deque object
 A list-like sequence optimized for data accesses near its endpoints.
 File:           /usr/local/miniconda3/envs/py3.6/lib/python3.6/collections/__init__.py
 Type:           type
 Subclasses:     Deque
-In [48]: Q = collections.deque()                                                         
-In [49]: Q.append(1)                                                                
+In [48]: Q = collections.deque()
+In [49]: Q.append(1)
 ```
 
 **OrderedDict 有序字典**
@@ -264,8 +264,8 @@ In [49]: Q.append(1)
 这里写一个简单的路径拼接的方法:
 
 ```python
-In [67]: import os                                                                       
-In [68]: os.path.join('/tmp', 'foo.txt')                                                 
+In [67]: import os
+In [68]: os.path.join('/tmp', 'foo.txt')
 Out[68]: '/tmp/foo.txt'
 ```
 
