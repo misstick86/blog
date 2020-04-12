@@ -23,7 +23,9 @@
 <meta name="mobile-web-app-capable" content="yes">
 
 <meta name="author" content="xiaosongsong" />
-  <meta name="description" content="一、逻辑电路 在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL" />
+  <meta name="description" content="一、逻辑电路 在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL门电路中，把低电平用数字0表示，把高电平用数字1表示。
+由此可以看出，高低电频的表示和二进制数字的表示法一样，那么我们就可以使用组合的逻辑电路来实现二进制之间的逻辑计算。
+" />
 
   <meta name="keywords" content="Python, linux, 个人博客" />
 
@@ -60,13 +62,19 @@
 
 
 <meta property="og:title" content="逻辑电路" />
-<meta property="og:description" content="一、逻辑电路 在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL" />
+<meta property="og:description" content="一、逻辑电路
+在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL门电路中，把低电平用数字0表示，把高电平用数字1表示。
+
+由此可以看出，高低电频的表示和二进制数字的表示法一样，那么我们就可以使用组合的逻辑电路来实现二进制之间的逻辑计算。" />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="/post/logic-circuit/" />
 <meta property="article:published_time" content="2019-04-27T16:01:23+08:00" />
 <meta property="article:modified_time" content="2019-04-27T16:01:23+08:00" />
 <meta itemprop="name" content="逻辑电路">
-<meta itemprop="description" content="一、逻辑电路 在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL">
+<meta itemprop="description" content="一、逻辑电路
+在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL门电路中，把低电平用数字0表示，把高电平用数字1表示。
+
+由此可以看出，高低电频的表示和二进制数字的表示法一样，那么我们就可以使用组合的逻辑电路来实现二进制之间的逻辑计算。">
 <meta itemprop="datePublished" content="2019-04-27T16:01:23&#43;08:00" />
 <meta itemprop="dateModified" content="2019-04-27T16:01:23&#43;08:00" />
 <meta itemprop="wordCount" content="3321">
@@ -75,7 +83,10 @@
 
 <meta itemprop="keywords" content="" /><meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="逻辑电路"/>
-<meta name="twitter:description" content="一、逻辑电路 在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL"/>
+<meta name="twitter:description" content="一、逻辑电路
+在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL门电路中，把低电平用数字0表示，把高电平用数字1表示。
+
+由此可以看出，高低电频的表示和二进制数字的表示法一样，那么我们就可以使用组合的逻辑电路来实现二进制之间的逻辑计算。"/>
 
 <!--[if lte IE 9]>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
@@ -701,7 +712,6 @@
 <p>第二步：2的补码（00000010）加上-3的补码（11111101）等于11111111。在上图中就是最后进位0等于CO输出。而SUB为1，两个输入1、0经过异或门得1，最左侧输出为1，表示结果为负数。 所以我们也就区分了11111111是补码表示为-1而不是255.</p>
 <h2 id="五总结">五、总结</h2>
 <p>对于CPU来说,最主要的功能就是计算和存储,计算我们通常用ALU来实现,存储也就是我们常说的寄存器。这个文档我简单介绍了ALU中关于加减法的设计,后续我们将介绍关于存储的设计和实现。</p>
-
     </div>
 
     

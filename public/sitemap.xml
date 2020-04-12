@@ -16,6 +16,20 @@
   </url>
   
   <url>
+    <loc>/post/</loc>
+    <lastmod>2020-04-11T16:01:23+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
+    <loc>/post/socket-for-ioevent/</loc>
+    <lastmod>2020-04-11T16:01:23+08:00</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  
+  <url>
     <loc>/tags/c/</loc>
     <lastmod>2020-04-10T16:01:23+08:00</lastmod>
     <changefreq>weekly</changefreq>
@@ -31,13 +45,6 @@
   
   <url>
     <loc>/tags/go/</loc>
-    <lastmod>2020-04-10T16:01:23+08:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  
-  <url>
-    <loc>/post/</loc>
     <lastmod>2020-04-10T16:01:23+08:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
