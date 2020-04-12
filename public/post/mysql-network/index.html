@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>记录一次公司的网络丢包 - 小松松的个人博客，记录学习和生活的点点滴滴！</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="Murray Bourne" />
+  <meta name="description" content="最近公司网络出现一个很诡异的现象,Navicat连接阿里云数据库等待一段时间(大约5s)之后,再次执行相应的SQL语句会变的异常卡顿,经过排查问题出现在我们的防火墙设备上,以下是排查过程.
+一、现象描述 大约在15号下午左右,开发人员反馈Navicat连接阿里云数据库非常的卡顿,平时秒级的查询今天要查询很久,无法忍受。
+接开发人员反馈后立即登陆到本地的一个ubuntu机器进行网络测试,因为从现象上来看可以大致判断这是一个网络问题,于是ping对应的RDS数据后发现网络并没有什么异常。
+" />
+
+  <meta name="keywords" content="Python, linux, 个人博客" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.68.3" />
+
+
+<link rel="canonical" href="/post/mysql-network/" />
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
+
+
+
+
+
+<meta property="og:title" content="记录一次公司的网络丢包" />
+<meta property="og:description" content="最近公司网络出现一个很诡异的现象,Navicat连接阿里云数据库等待一段时间(大约5s)之后,再次执行相应的SQL语句会变的异常卡顿,经过排查问题出现在我们的防火墙设备上,以下是排查过程.
+
+一、现象描述
+
+大约在15号下午左右,开发人员反馈Navicat连接阿里云数据库非常的卡顿,平时秒级的查询今天要查询很久,无法忍受。
+
+接开发人员反馈后立即登陆到本地的一个ubuntu机器进行网络测试,因为从现象上来看可以大致判断这是一个网络问题,于是ping对应的RDS数据后发现网络并没有什么异常。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/post/mysql-network/" />
+<meta property="article:published_time" content="2019-08-04T16:01:23+08:00" />
+<meta property="article:modified_time" content="2019-08-05T16:01:23+08:00" />
+<meta itemprop="name" content="记录一次公司的网络丢包">
+<meta itemprop="description" content="最近公司网络出现一个很诡异的现象,Navicat连接阿里云数据库等待一段时间(大约5s)之后,再次执行相应的SQL语句会变的异常卡顿,经过排查问题出现在我们的防火墙设备上,以下是排查过程.
+
+一、现象描述
+
+大约在15号下午左右,开发人员反馈Navicat连接阿里云数据库非常的卡顿,平时秒级的查询今天要查询很久,无法忍受。
+
+接开发人员反馈后立即登陆到本地的一个ubuntu机器进行网络测试,因为从现象上来看可以大致判断这是一个网络问题,于是ping对应的RDS数据后发现网络并没有什么异常。">
+<meta itemprop="datePublished" content="2019-08-04T16:01:23&#43;08:00" />
+<meta itemprop="dateModified" content="2019-08-05T16:01:23&#43;08:00" />
+<meta itemprop="wordCount" content="1766">
+
+
+
+<meta itemprop="keywords" content="network,linux,mysql," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="记录一次公司的网络丢包"/>
+<meta name="twitter:description" content="最近公司网络出现一个很诡异的现象,Navicat连接阿里云数据库等待一段时间(大约5s)之后,再次执行相应的SQL语句会变的异常卡顿,经过排查问题出现在我们的防火墙设备上,以下是排查过程.
+
+一、现象描述
+
+大约在15号下午左右,开发人员反馈Navicat连接阿里云数据库非常的卡顿,平时秒级的查询今天要查询很久,无法忍受。
+
+接开发人员反馈后立即登陆到本地的一个ubuntu机器进行网络测试,因为从现象上来看可以大致判断这是一个网络问题,于是ping对应的RDS数据后发现网络并没有什么异常。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">小松松的个人博客</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">主页</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">全部文章</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">标签</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">分类</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+        
+      </li>
+    
+
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      小松松的个人博客
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">主页</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">全部文章</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">标签</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">分类</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+
+    
+    
+
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">记录一次公司的网络丢包</h1>
+      
+      <div class="post-meta">
+        <time datetime="2019-08-04" class="post-time">
+          2019-08-04
+        </time>
+        <div class="post-category">
+            <a href="/categories/linux/"> linux </a>
+            <a href="/categories/%E7%BD%91%E7%BB%9C/"> 网络 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p>最近公司网络出现一个很诡异的现象,Navicat连接阿里云数据库等待一段时间(大约5s)之后,再次执行相应的SQL语句会变的异常卡顿,经过排查问题出现在我们的防火墙设备上,以下是排查过程.</p>
+
+<h2 id="一现象描述">一、现象描述</h2>
+
+<p>大约在15号下午左右,开发人员反馈Navicat连接阿里云数据库非常的卡顿,平时秒级的查询今天要查询很久,无法忍受。</p>
+
+<p>接开发人员反馈后立即登陆到本地的一个ubuntu机器进行网络测试,因为从现象上来看可以大致判断这是一个网络问题,于是ping对应的RDS数据后发现网络并没有什么异常。</p>
+
+<p><figure><img src="/images/network/1571364084275.png" alt="1571364084275"></figure></p>
+
+<p>从上图标红可以看到丢包率为0,每个包的延迟都在3ms左右,可以说是非常的正常,这也说明我们的公司网络整体是正常的。</p>
+
+<p>既然问题是出现在MySQL上,用Navicat现象不明显,此时也就在本地的一台ubuntu机器上使用MySQL客户端连接并抓包来分析一下。发现从数据库认证到执命令是正常的，但隔一段时间后再次执行一条简单的<code>show databases</code>语句就会卡住,一下是抓包的结果.</p>
+
+<p><figure><img src="/images/network/1571364627507.png" alt="1571364627507"></figure></p>
+
+<p>从上面的抓包来看,MySQL客户端户在一次查询语句之后不停的发送TCP Retransmission 重传包,于是问题就清楚了,客户端连接到服务端后发送的包丢失了,这会有一下情况:</p>
+
+<ol>
+<li>RDS没有收到客户的查询请求,也就是说包本身没有到服务端</li>
+<li>RDS本身有问题,没有响应客户端的请求</li>
+<li>RDS响应了客户端的请求,但是客户端没有接受到对应的响应</li>
+</ol>
+
+<h2 id="二排查问题">二、排查问题</h2>
+
+<p>从以上情况可以得知,问题出现在服务端、客户端、公网都是有可能的,但是公网不受我们控制,而且即使出现问题也只能找对应的供应商协同排查,所我们先从以下两侧分析.</p>
+
+<h4 id="1服务端侧排查">1、服务端侧排查</h4>
+
+<p>由于数据库是阿里云的RDS,我们联系了对应的阿里云工程师查看了RDS的内外网状态,从之前的经验上来看,我更倾向于是阿里云RDS所有在网络的出口IP设备负载跑高导致丢包,而RDS根本就无法接受到数据包,也无法处理。</p>
+
+<p>但阿里云网络工程师和数据库工程师在各个节点上抓包都没有发现问题,此时服务端侧只能排除.为了验证不是服务端的问题，我们同时还做以下验证:</p>
+
+<p><strong>阿里内网直接访问RDS</strong></p>
+
+<p>这个只需要在阿里云ECS安装一个MySQL客户后直接连接阿里云的内外网地址即可,从抓包和使用上来看没有任何问题,也没有发现有TCP不断的重传现象.</p>
+
+<p><strong>公司网络访问其他自建数据库</strong></p>
+
+<p>公司直接访问其他数据库也发现了同样的问题,客户端过一段时间后不段的发送<code>[TCP Retransmission]</code>包,从目前看来网络问题和服务端没有什么关系.</p>
+
+<h4 id="2客户端侧排查">2、客户端侧排查</h4>
+
+<p>此时,我们更多的焦点还是定位到公司网络方面,和同事一起梳理了对应的公司网络拓扑图，如下:</p>
+
+<p><figure><img src="/images/network/1571367817272.png" alt="1571367817272"></figure></p>
+
+<p>从拓扑图可以看出,如果问题出现在公司网络,那么会有以下可能. <strong>光纤接收器</strong>、<strong>防火墙</strong>、<strong>三层路由交换机</strong>、<strong>二层交换机</strong>。所以此时只能使用排除法一个一个来筛选。</p>
+
+<p>公司本地就有一个MySQL服务,使用Navicat连接操作没有任何问题。</p>
+
+<p>所以可以排除<strong>二层交换机</strong>没有问题.</p>
+
+<p>防火墙是华为的设备,跟华为技术人员沟通，我们可以直接让PC连接到防火墙上网,此时我们有以下情况:</p>
+
+<ul>
+<li>直连防火墙后访问外网数据库有无问题。 (可以定位防火墙和光纤接收器)。</li>
+<li>直连防火墙后访问内网本地数据库有无问题。 (可以定位防火墙和三层路由交换机)。</li>
+</ul>
+
+<p>然而,从抓包和测试来看,无论是访问外网还是内网数据库都会丢包,客户端会不断的发送重传包。</p>
+
+<p><strong>那么问题就确定了，就是这台防火墙在作祟,它将数据包丢弃了</strong>。</p>
+
+<h2 id="三解决问题">三、解决问题</h2>
+
+<p>我们的防火墙本身是可以抓包的,以下是在防火墙抓的包:</p>
+
+<p><figure><img src="/images/network/1571368712632.png" alt="1571368712632"></figure></p>
+
+<p>从上面的抓包来看可以得出一下结论:</p>
+
+<ol>
+<li>客户端和服务端在不停的建立连接</li>
+<li>客户端在服务端之间出现丢包或者乱序。 参考: <a href="https://www.cnblogs.com/strick/p/6261463.html">Wireshark网络抓包</a></li>
+<li>客户端发起TCP三次握手时，seq序列号依然很大,看起来又不像一次TCP连接。</li>
+</ol>
+
+<p>从防火墙的配置来看，MySQL协议的会话超时时间设置的是6s, 这个时间太小了,以至于客户端或服务端还未来的及发送对应的<code>TCP Keepalive</code>包,防火墙就将其连接断开，这也就验证了客户端为什么不停的发送重传包和到了超时时间后再建立连接.</p>
+
+<p>修改对应的参数后，我们在客户端抓包如下:</p>
+
+<p><figure><img src="/images/network/1571371078463.png" alt="1571371078463"></figure></p>
+
+<p>可以看到服务端或客户端会隔一定的时间发送对应的<code>TCP Keep-Alive</code>包来保持这个连接，这样在防火墙断开这个连接之前就发送<code>TCP Keep-Alive</code>包来确定保持这个连接，防火墙也就不会再断开这个TCP连接.</p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">Murray Bourne</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+      2019-08-05
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">欢迎转载分享，请注明出处！</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/network/">network</a>
+          <a href="/tags/linux/">linux</a>
+          <a href="/tags/mysql/">mysql</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/python-skill/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">Python 技巧</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/bin-store/">
+            <span class="next-text nav-default">二进制存储</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="icon-links">
+  
+  
+    <a href="https://github.com/busyboy-ws" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+   
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    2020
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        小松松
+        
+      </span></span>
+
+  
+  
+
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.css"
+    integrity="sha384-BdGj8xC2eZkQaxoQ8nSLefg4AV4/AwB3Fj+8SUSo7pnKP6Eoy18liIKTPn9oBYNG"
+    crossorigin="anonymous">
+
+  
+  <script defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/katex.min.js"
+    integrity="sha384-JiKN5O8x9Hhs/UE5cT5AAJqieYlOZbGT3CHws/y97o3ty4R7/O5poG9F3JoiOYw1"
+    crossorigin="anonymous"></script>
+
+  
+  <script defer
+    src="https://cdn.jsdelivr.net/npm/katex@0.11.0/dist/contrib/auto-render.min.js"
+    integrity="sha384-kWPLUVMOks5AQFrykwIup5lo0m3iMkkHrD0uJ4H5cjeGihAutqP0yW0J6dpFiVkI"
+    crossorigin="anonymous" onload="renderMathInElement(document.body);">
+  </script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMathInElement(document.body, {
+        
+      });
+    });
+  </script>
+
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

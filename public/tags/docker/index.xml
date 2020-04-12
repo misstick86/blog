@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>docker on 小松松的个人博客，记录学习和生活的点点滴滴！</title>
+    <link>/tags/docker/</link>
+    <description>Recent content in docker on 小松松的个人博客，记录学习和生活的点点滴滴！</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>小松松</copyright>
+    <lastBuildDate>Fri, 10 May 2019 16:01:23 +0800</lastBuildDate>
+    
+	<atom:link href="/tags/docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Docker所依赖的Linux内核技术</title>
+      <link>/post/docker-linux/</link>
+      <pubDate>Fri, 10 May 2019 16:01:23 +0800</pubDate>
+      
+      <guid>/post/docker-linux/</guid>
+      <description>上一篇文章讲到Docker本质上还是一个进程，它的隔离主要依赖于Linux内核的Namespace机制，这篇文章就带你从进程创建到Names</description>
+    </item>
+    
+    <item>
+      <title>Docker 基础</title>
+      <link>/post/docker-basic/</link>
+      <pubDate>Wed, 01 May 2019 15:43:48 +0800</pubDate>
+      
+      <guid>/post/docker-basic/</guid>
+      <description>&lt;p&gt;&lt;!-- raw HTML omitted --&gt;Docker和虚拟机有什么关系和区别？&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;Docker是如何实现隔离的？&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;浅谈docker历史&#34;&gt;浅谈Docker历史&lt;/h2&gt;
+&lt;p&gt;2013年我刚进入大学学习技术的时候，在学校的技术社团和老师的谈话中听到最多的莫过于&lt;strong&gt;云计算&lt;/strong&gt;,其中听到最多的专业名词是openstack;那时听着他们说叫做IASS项目,不过随着不断的学习OpenStack慢慢淡出了我们视野，随之而来谈论更多的便是&lt;strong&gt;docker&lt;/strong&gt;。&lt;/p&gt;
+&lt;p&gt;在2013PASS的热潮中，dotCloud宣布开源自己的容器项目Docker,在当时容器并不是什么新鲜的东西,并且在之前Cloud Foundry早已实现了&amp;quot;容器&amp;quot;的技术,显然这个决定根本也没有人在乎;但由于Docker独特的&lt;strong&gt;镜像&lt;/strong&gt;技术成为Docker弯道超车的不二法宝,并在段段几个月内,Docker项目就迅速崛起,以至于所有的PASS社区在还没有成为他的竞争对手就直接被宣告出局。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

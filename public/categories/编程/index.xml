@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>编程 on 小松松的个人博客，记录学习和生活的点点滴滴！</title>
+    <link>/categories/%E7%BC%96%E7%A8%8B/</link>
+    <description>Recent content in 编程 on 小松松的个人博客，记录学习和生活的点点滴滴！</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>小松松</copyright>
+    <lastBuildDate>Thu, 09 Apr 2020 16:01:23 +0800</lastBuildDate>
+    
+	<atom:link href="/categories/%E7%BC%96%E7%A8%8B/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>一起来刷leetcode吧</title>
+      <link>/post/leetcode/</link>
+      <pubDate>Thu, 09 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/leetcode/</guid>
+      <description>Introduction 对于技术人来说，算法,数据结构是和别人区分开的一个实质性体现，闲来无事的时候刷一刷,增加自己的技能是非常必要的. 欢迎start和关注，一起</description>
+    </item>
+    
+    <item>
+      <title>Werkzuge的一次请求和响应</title>
+      <link>/post/werkzuge-request/</link>
+      <pubDate>Tue, 04 Feb 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/werkzuge-request/</guid>
+      <description>&lt;h2 id=&#34;werkzuge示例&#34;&gt;werkzuge示例&lt;/h2&gt;
+&lt;p&gt;一个简单的werkzuge示例如下所示:&lt;/p&gt;</description>
+    </item>
+    
+    <item>
+      <title>Python 技巧</title>
+      <link>/post/python-skill/</link>
+      <pubDate>Mon, 30 Sep 2019 16:01:23 +0800</pubDate>
+      
+      <guid>/post/python-skill/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;首先说明,这只是一些常见的使用技巧或者方法,你完全可以使用别的方式实现.&lt;/strong&gt;&lt;/p&gt;
+&lt;h4 id=&#34;1遵循pep-8风格&#34;&gt;1.遵循PEP 8风格&lt;/h4&gt;
+&lt;p&gt;PEPE 8是针对Python代码格式而编写的风格指南.目的是让每个开发人员遵循同一种风格来编写代码，这样书写可以使代码更加易懂、易读;方便自己,也方便他人. PEP8 的指南在其官网地址为:&lt;a href=&#34;https://www.python.org/dev/peps/pep-0008/&#34;&gt;链接&lt;/a&gt;,这里列出几条绝对要准许的规则。&lt;/p&gt;</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>go on 小松松的个人博客，记录学习和生活的点点滴滴！</title>
+    <link>/tags/go/</link>
+    <description>Recent content in go on 小松松的个人博客，记录学习和生活的点点滴滴！</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>小松松</copyright>
+    <lastBuildDate>Thu, 09 Apr 2020 16:01:23 +0800</lastBuildDate>
+    
+	<atom:link href="/tags/go/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>一起来刷leetcode吧</title>
+      <link>/post/leetcode/</link>
+      <pubDate>Thu, 09 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/leetcode/</guid>
+      <description>Introduction 对于技术人来说，算法,数据结构是和别人区分开的一个实质性体现，闲来无事的时候刷一刷,增加自己的技能是非常必要的. 欢迎start和关注，一起</description>
+    </item>
+    
+  </channel>
+</rss>
