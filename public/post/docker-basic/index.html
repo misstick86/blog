@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Docker 基础 - 小松松的个人博客，记录学习和生活的点点滴滴！</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="小松松" />
+  <meta name="description" content="Docker和虚拟机有什么关系和区别？Docker是如何实现隔离的？浅谈Docker历史 2013年我刚进入大学学习技术的时候，在学校的技术社团和老师的谈话中听到最多的莫过于云计算,其中听到最多的专业名词是openstack;那时听着他们说叫做IASS项目,不过随着不断的学习OpenStack慢慢淡出了我们视野，随之而来谈论更多的便是docker。
+在2013PASS的热潮中，dotCloud宣布开源自己的容器项目Docker,在当时容器并不是什么新鲜的东西,并且在之前Cloud Foundry早已实现了&amp;quot;容器&amp;quot;的技术,显然这个决定根本也没有人在乎;但由于Docker独特的镜像技术成为Docker弯道超车的不二法宝,并在段段几个月内,Docker项目就迅速崛起,以至于所有的PASS社区在还没有成为他的竞争对手就直接被宣告出局。
+" />
+
+  <meta name="keywords" content="Python, linux, 个人博客" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.68.3" />
+
+
+<link rel="canonical" href="/post/docker-basic/" />
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
+
+
+
+
+
+<meta property="og:title" content="Docker 基础" />
+<meta property="og:description" content="Docker和虚拟机有什么关系和区别？
+Docker是如何实现隔离的？
+浅谈Docker历史
+2013年我刚进入大学学习技术的时候，在学校的技术社团和老师的谈话中听到最多的莫过于云计算,其中听到最多的专业名词是openstack;那时听着他们说叫做IASS项目,不过随着不断的学习OpenStack慢慢淡出了我们视野，随之而来谈论更多的便是docker。
+在2013PASS的热潮中，dotCloud宣布开源自己的容器项目Docker,在当时容器并不是什么新鲜的东西,并且在之前Cloud Foundry早已实现了&quot;容器&quot;的技术,显然这个决定根本也没有人在乎;但由于Docker独特的镜像技术成为Docker弯道超车的不二法宝,并在段段几个月内,Docker项目就迅速崛起,以至于所有的PASS社区在还没有成为他的竞争对手就直接被宣告出局。" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/post/docker-basic/" />
+<meta property="article:published_time" content="2019-05-01T15:43:48+08:00" />
+<meta property="article:modified_time" content="2019-05-01T15:43:48+08:00" />
+<meta itemprop="name" content="Docker 基础">
+<meta itemprop="description" content="Docker和虚拟机有什么关系和区别？
+Docker是如何实现隔离的？
+浅谈Docker历史
+2013年我刚进入大学学习技术的时候，在学校的技术社团和老师的谈话中听到最多的莫过于云计算,其中听到最多的专业名词是openstack;那时听着他们说叫做IASS项目,不过随着不断的学习OpenStack慢慢淡出了我们视野，随之而来谈论更多的便是docker。
+在2013PASS的热潮中，dotCloud宣布开源自己的容器项目Docker,在当时容器并不是什么新鲜的东西,并且在之前Cloud Foundry早已实现了&quot;容器&quot;的技术,显然这个决定根本也没有人在乎;但由于Docker独特的镜像技术成为Docker弯道超车的不二法宝,并在段段几个月内,Docker项目就迅速崛起,以至于所有的PASS社区在还没有成为他的竞争对手就直接被宣告出局。">
+<meta itemprop="dateModified" content="2019-05-01T15:43:48&#43;08:00" />
+<meta itemprop="wordCount" content="5232">
+
+
+
+<meta itemprop="keywords" content="docker,linux," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Docker 基础"/>
+<meta name="twitter:description" content="Docker和虚拟机有什么关系和区别？
+Docker是如何实现隔离的？
+浅谈Docker历史
+2013年我刚进入大学学习技术的时候，在学校的技术社团和老师的谈话中听到最多的莫过于云计算,其中听到最多的专业名词是openstack;那时听着他们说叫做IASS项目,不过随着不断的学习OpenStack慢慢淡出了我们视野，随之而来谈论更多的便是docker。
+在2013PASS的热潮中，dotCloud宣布开源自己的容器项目Docker,在当时容器并不是什么新鲜的东西,并且在之前Cloud Foundry早已实现了&quot;容器&quot;的技术,显然这个决定根本也没有人在乎;但由于Docker独特的镜像技术成为Docker弯道超车的不二法宝,并在段段几个月内,Docker项目就迅速崛起,以至于所有的PASS社区在还没有成为他的竞争对手就直接被宣告出局。"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">小松松的个人博客</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">主页</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">全部文章</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">标签</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">分类</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+        
+      </li>
+    
+
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      小松松的个人博客
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">主页</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">全部文章</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">标签</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">分类</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+
+    
+    
+
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Docker 基础</h1>
+      
+      <div class="post-meta">
+        <time datetime="2019-05-01" class="post-time">
+          1059-48-01
+        </time>
+        <div class="post-category">
+            <a href="/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/"> 操作系统 </a>
+            <a href="/categories/%E5%AE%B9%E5%99%A8%E5%8C%96/"> 容器化 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#浅谈docker历史">浅谈Docker历史</a></li>
+    <li><a href="#谈谈进程">谈谈进程</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#虚拟机vs容器">虚拟机VS容器</a>
+      <ul>
+        <li><a href="#虚拟机">虚拟机</a></li>
+        <li><a href="#容器">容器</a></li>
+      </ul>
+    </li>
+    <li><a href="#简述docker">简述Docker</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <p><!-- raw HTML omitted -->Docker和虚拟机有什么关系和区别？<!-- raw HTML omitted --></p>
+<p><!-- raw HTML omitted -->Docker是如何实现隔离的？<!-- raw HTML omitted --></p>
+<h2 id="浅谈docker历史">浅谈Docker历史</h2>
+<p>2013年我刚进入大学学习技术的时候，在学校的技术社团和老师的谈话中听到最多的莫过于<strong>云计算</strong>,其中听到最多的专业名词是openstack;那时听着他们说叫做IASS项目,不过随着不断的学习OpenStack慢慢淡出了我们视野，随之而来谈论更多的便是<strong>docker</strong>。</p>
+<p>在2013PASS的热潮中，dotCloud宣布开源自己的容器项目Docker,在当时容器并不是什么新鲜的东西,并且在之前Cloud Foundry早已实现了&quot;容器&quot;的技术,显然这个决定根本也没有人在乎;但由于Docker独特的<strong>镜像</strong>技术成为Docker弯道超车的不二法宝,并在段段几个月内,Docker项目就迅速崛起,以至于所有的PASS社区在还没有成为他的竞争对手就直接被宣告出局。</p>
+<p>2013年底，dotCloud公司决定改名为Docker公司,这为日后容器技术圈埋下了伏笔.</p>
+<p>在之后的一段时间里Docker项目一路高歌猛进,一时间，“容器化”取代“pass化”成为基础设施领域最火的关键词,与之而来的便是Docker公司在2014年发布的Swarm项目. 而此时,Docker公司早已开始考虑商业化的途径,毕竟用户始终要部署的还是他们的网站、服务、数据库,这才能够产生真真的商业价值.否则Docker也只是用来启动和暂停的小工具,只是幕后英雄。</p>
+<p>CoreOS是一家基础设施领域的创业公司,在Docker项目不久后就将“容器”概念集成到自己的操作系统中,并在短时间内成为了Docker项目中重要力量,但在Docker宣布“Swarm”项目不久后就分道扬镳了,其原因Swarm可以支持更多机器,并且使用Docker项目的原生API来管理,操作方式简洁明了,也奠定了Docker向平台化方向发展,但这却和CoreOS和核心产品和战略发生冲突。</p>
+<p>在2014到2015年这段时间里,Docker生态圈的发展非常旺盛,围绕着Docker在各个层次和创新的项目层出不穷,此时,Docker收购了只有两个全职开发和维护的Fig项目,并提供出了<strong>容器编排</strong>的基本概念,这边是大名鼎鼎的<strong>Compose</strong>项目.一时间,整个基础设施大项目都汇聚在Docker公司周围,但也引起了许多人对Docker公司的决策不满,此时也进入了容器发展史的第二阶段。</p>
+<p>2014年6月,基础设施领域的翘楚Google公司宣布一个名叫<strong>Kubernetes</strong>的项目诞生,这个项目如同当年Docker一样,再一次改变了容器的市场格局。</p>
+<p>在容器领域,Docker早已是一家独大的话语权,但社区成员早已对此抱怨已久。此时,像Google、Redhat等老牌基础设施领域的玩家们,共同发起了一个名为CNCF的基金会,目的是:以kubernetes为基础,建立一个独立基金会方式运营的平台级社区,并以此来抗衡Docker公司的容器生态圈。</p>
+<p>2017年开始,Docker公司先是将Docker项目的容器运行时部分Containerd捐给CNCF社区,紧接着将Docker项目改名为Moby,然后交给社区自行维护.</p>
+<p>最后Kubernetes凭借这参考Google在容器化基础设施领域多年来实践经验Borg和Omega的特性和社区成员的辛勤努力,并最终在这场竞争中完胜。</p>
+<h2 id="谈谈进程">谈谈进程</h2>
+<h4 id="21-概念">2.1 概念</h4>
+<p>进程：是指计算机中已运行的程序;在<strong>面向进程设计的系统</strong>(Linux 2.4一下)中,进程为程序的基本执行实体;在<strong>面向线程设计系统</strong>中(Linux2.6以上),进程为线程的容器. 其中关于进行的定义也有很多，这里个人比较倾向于这种说法: 进程是具有独立功能的程序在一个数据集合上运行的过程,它是系统进行资源分配和调度的一个独立单位.
+从大类划分,可以将进程划分为静态(程序)和运行态(进程):</p>
+<ol>
+<li>程序：通常为可执行文件,放置在存储媒介中,是数据和指令的结合。</li>
+<li>进程：程序执行时的状态,加载所需要的数据(比如：指令、环境变量)到内存中进行执行计算,操作并给予一个标识符PID(进程ID号)。</li>
+</ol>
+<p>不妨来看看一个简单的程序运是如何运行的。</p>
+<h4 id="22-程序如何被运行">2.2 程序如何被运行</h4>
+<blockquote>
+<p>假设我们写一个加法的小程序,程序的输入来自于一个文件,计算完成后的结果则输出到另一个文件。</p>
+</blockquote>
+<p>由于操作系统之认识0和1,所以无论什么语言编写的代码最后都会被翻译为机器码,最后才在操作系统中运行起来。</p>
+<p>首先,操作系统将可执行文件加载内存中，并交由CPU进行执行,在执行过程中发现需要从文件中读取数据来源,之后并将输入文件加载到内存中保留一份副本进行待命；同时,操作系统读取到计算加法的指令,这时,就会调用CPU完成加法操作；而CPU与内存协作进行加法计算,又会使用寄存器存放数值、内存堆栈等保留执行命令和变量.就这样CPU、内存、I/O、操作系统等共同协作完成了一次加法运算。</p>
+<p>可能你还是不太理解到底是如何完成加法的,这里你可以不用深究,只需要明白操作系统就像是人的大脑一样,他指挥这CPU、内存、I/O设备协同工作完成一件事件,就像你的大脑一样指挥这你如何如何工作,什么时候用手、什么时候用嘴说话。</p>
+<h4 id="23-给进程加个套">2.3 给进程加个套</h4>
+<p>对于进程来说,当被运行起来后,需要为它分配很多<strong>资源</strong>和<strong>视图</strong>.视图主要为了描述这个进程,资源主要为了进程内部开销使用.通常一个进程在被启动起来我们要分配：PID、User、系统标识符、netwrok、file system等视图. 在传统的一个系统中运行时,进程所需要的这些视图都是由操作系统进行分配,而且部分视图一旦被其他进程申请后将不能在分配,这也就表明了为什么一个进程监听了操作系统的<strong>80</strong>端口,如果另一个进程在申请监听<strong>80</strong>端口将会出现冲突。</p>
+<p>而<strong>容器的核心功能,就是通过约束这些视图的分配，修改进程运行时的表现形式,限制进程的资源开销，从而为其创建一个他无法逃脱的“边界”</strong>。</p>
+<p>对于Docker来说,<strong>Namespace技术</strong>主要就是修改进程运行时一些视图分配,而<strong>Cgroup</strong>是限制一个进程资源最大开销。</p>
+<h2 id="虚拟机vs容器">虚拟机VS容器</h2>
+<p>既然谈到虚拟机,那就不得不放上官方提供的虚拟机和容器的对比图:</p>
+<p><img src="/images/docker/docker-1.png" alt="虚拟机 VS Docker"></p>
+<p><em>注：这是最新的官方图片,之前是在底层的Hypervisor下还有一层Host OS.</em></p>
+<p>从上图对比可以看出,在底层上,Docker和Host OS只是替代了虚拟机的Hypervisor.因此,会有很多人认为Docker就是轻量级的虚拟机,但事实真的如此吗？</p>
+<h3 id="虚拟机">虚拟机</h3>
+<p>虚拟机（Virtual Machine）指通过软件模拟的具有完整硬件系统功能的、运行在一个完全隔离环境中的完整计算机系统。 &ndash;来自【百度百科】</p>
+<p>传统的虚拟化技术是对硬件资源的虚拟化,每台虚拟机都要自己的独立的操作系统,这就意味这你可以在windows的机器里安装Linux虚拟机,而且每个虚拟机拥有独立的二进制库、内核. 也就是这里完全是一片新天地,比较常见的是Hypervisor.</p>
+<h3 id="容器">容器</h3>
+<p>容器运行在Linux系统本地并且和其他容器共享主机内核。他是一个独立的进程，不占用任何其他可执行文件内存，足够轻量级。</p>
+<blockquote>
+<p>单说不够，我们来简单的做个实验，这里假设你有一个安装好的Docker机器。也可以翻到最后查看安装步骤。</p>
+</blockquote>
+<pre><code>[root@node2 ~]# docker run -it busybox /bin/sh
+</code></pre><p>这表示使用<strong>docker run</strong>启动一个<strong>busybox</strong>虚拟机.而<code>-it</code> 表示在启动这个容器之后为这个容器分配一个终端,并进入交互式模式;<code>/bin/sh</code> 就表示我们运行容器后要执行的命令,创建一个shell。
+此时，我们就进入了在当前容器下的交互shell,可以使用所有的<strong>busybox</strong>命令,所拥有的环境变量都是当前容器下的.</p>
+<pre><code>/ # printenv
+HOSTNAME=3fc8a0273acb
+SHLVL=1
+HOME=/root
+TERM=xterm
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+PWD=/
+</code></pre><p>此时，我们执行一下<code>ps</code>看看:</p>
+<pre><code>/ # ps
+PID   USER     TIME  COMMAND
+    1 root      0:00 /bin/sh
+    6 root      0:00 ps
+</code></pre><p>可以看到，<code>ps</code>命令查看出来的进程和系统的完全不同，此时这个容器就被Docker隔离在一个跟宿主机完全不同的世界中.
+其实，这只是操作系统给的障眼法而已,当我们在宿主机上启动一个容器时,其本质也是一个由系统调用产生的进程(clone调用),操作系统还是为其分配一个进程ID号,例如：pid=100. 我们来看看操作系统分配的PID:</p>
+<pre><code>[root@node2 ~]# docker inspect -f '{{.State.Pid}}' 3fc8a0273
+22521
+[root@node2 ~]# docker top 3fc8a0273
+</code></pre><p>这种机制就是对被隔离应用的进程做了手脚,使得这些进程只能看到重新计算过的进程编号,也就是上述我们在容器里执行<code>ps</code>看到的结果.
+<strong>这种技术也就是Linux的Namespace技术</strong>,上述我们刚刚看到的pid也就是六大Namespace之一的<strong>PID Namespace</strong>,除此之外还有<strong>User</strong>、<strong>UTS</strong>、<strong>IPC</strong>、<strong>Network</strong>、<strong>Mount</strong>,用于对同一进程上不同的视图进行隔离.</p>
+<p>这也是容器最基本的实现原理,可以看出它本质上还是一个进程,只是比较特殊而已。</p>
+<p>所以,在上面官方提供的虚拟机对比图中,Docker不应该放在最底层,而是和操作系统里的进程一样,由操作系统管理，而Docker本身则对用户启动的进程完成辅助和管理工作。</p>
+<p><img src="/images/docker/docker-2.png" alt="虚拟机 VS Docker"></p>
+<blockquote>
+<p>问题： 既然操作系统已经为这个sh进程分配了一个进程ID号，可是，我们在Docker内部还是看到了sh的另一个进程ID<strong>1</strong>. 难道说操作系统可以随意为进程分配ID号，而且我们知道ID号为1一般是init进程。</p>
+</blockquote>
+<h2 id="简述docker">简述Docker</h2>
+<p>Docker是一个开发、部输和运行应用程序的开放平台. Docker允许你将应用程序和基础架构分离以便可以快速的通过Docker交付软件,你可以像管理应用程序一样管理基础架构,并且快速传输、测试、部署你的代码，在开发和部署上明显节约时间。</p>
+<h4 id="docker平台">Docker平台</h4>
+<p>从上述可以知道，Docker实质上还是一个进程。 Docker提供包含运行应用程序所有环境的包，我们称之为容器，并且之间相互隔离;而且，这就意味着你可以运行多个容器在同一个主机上. 实质上也是宿主机上运行的多个进程. 而管理这里进程的程序，我们称之为Docker Engine.</p>
+<h4 id="docker架构">Docker架构</h4>
+<p>Docker采用客户端-服务端架构. Docker客户端和Docker守护进程通信. 这解决了沉重的构建、运行、部署Docker容器.Docker客户端和守护进程可以运行在同样的系统中，也可以通过客户端连接远端的Docker服务端.他们之间基于Unix的套接字或者网络接口通过REST API进行通信。
+<img src="/images/docker/docker-3.png" alt="Docker 架构"></p>
+<p>Docker客户端:
+Docker客户端是Docker用户和Docker交互的主要方式，当你使用docker run命令时，客户端基于API接口将这些命令发送到dockerd。此外一个Docker客户可以和多个Docker服务进程进行通信.</p>
+<p>Docker守护进程:
+Docker进程监听docker API的请求和管理Docker对象例如: 镜像、容器、网络和卷. 守护进程可以和其他进程进行通信以管理Docker服务.</p>
+<p>Docker registries(Docker仓库):
+Docker registries存储Docker镜像. 像Docker Hub和Docker Cloud是公共镜像库并且所有人都可以访问。Docker的默认查找镜像是通过Docker hub.你也可以使用私人的镜像库.</p>
+<p>我们来说一说当执行<code>docker run</code>时到底发生了什么？</p>
+<pre><code>[root@10-19-103-109 ~]# docker run -it ubuntu /bin/bash
+</code></pre><ul>
+<li>Docker在本地查找镜像,如果本地没有ubuntu镜像,Docker将从你配置的仓库下载，像是手动运行<code>docker pull ubuntu</code>.</li>
+<li>Docker创建一个新的容器，这个过程像是手动运行<code>docker container creater</code>.</li>
+<li>Docker为容器分配可读写的文件系统，作为最后一层. 这允许运行的容器直接的修改文件或者目录在本地文件系统.</li>
+<li>docker创建一个网络接口连接容器的默认网络，如果没有做任何网络配置.这包括为容器分配ip地址。默认容器可以连接到外部网络通过宿主机的网络。</li>
+<li>启动docker容器并执行/bin/bash,因为容器运行在交互式模式下并占据你的终端.</li>
+<li>使用exit可以退出当前容器，但容器不会被删除，可以重新启动它。</li>
+</ul>
+<h4 id="底层技术">底层技术</h4>
+<p>上面说过，Docker的实现依赖于Linux的Namespace技术，简单描述下他们的功能:</p>
+<h5 id="namespace">namespace</h5>
+<ul>
+<li>The pid namespace: Process isolation (PID: Process ID).  进程间隔离</li>
+<li>The net namespace: Managing network interfaces (NET: Networking).  网络隔离</li>
+<li>The ipc namespace: Managing access to IPC resources (IPC: InterProcess Communication).  进程通信隔离</li>
+<li>The mnt namespace: Managing filesystem mount points (MNT: Mount).  文件系统隔离</li>
+<li>The uts namespace: Isolating kernel and version identifiers. (UTS: Unix Timesharing System).  内核和系统唯一信息隔离（如主机名）</li>
+</ul>
+<h5 id="cgroups">Cgroups</h5>
+<p>Docker引擎依然依赖于linux的另一个技术叫做Cgroups。一个Cgroups限制一个应用程序的资源集合.Cgroups允许Docker引擎共享可用的硬件资源并可以强制限制.例如: 可以限制每个容器的内存使用。</p>
+<h5 id="union-file-systems">Union file systems:</h5>
+<p>Union file systems或者UnionFS通过创建层来操作文件系统，而且他们将非常的轻量和快速.Docker引擎使用UnionFS为容器提供构建的块. Docker引擎可以使用多个类似UnionFS文件系统，列如： AUFS, btrfs, vfs, 和DeviceMapper。</p>
+<h5 id="container-format">Container format:</h5>
+<p>Docker引擎联合名称空间、Cgroups、和UnionFS来封装叫做一个容器格式。 默认的容器格式叫做：libcontainer. 之后Docker整合其他技术可能支持其他容器格式例如： BSD jails 或 Solaris Zones.</p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">小松松</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+      1059-48-01
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a href="https://github.com/gohugoio/hugoBasicExample" rel="noopener" target="_blank">See origin</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/docker/">docker</a>
+          <a href="/tags/linux/">linux</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/docker-linux/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">Docker所依赖的Linux内核技术</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/logic-circuit/">
+            <span class="next-text nav-default">逻辑电路</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="icon-links">
+  
+  
+    <a href="https://github.com/busyboy-ws" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+   
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    2020
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        小松松
+        
+      </span></span>
+
+  
+  
+
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en" itemscope itemtype="http://schema.org/WebPage">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Werkzuge的一次请求和响应 - 小松松的个人博客，记录学习和生活的点点滴滴！</title>
+  
+
+<meta name="renderer" content="webkit" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+<meta name="MobileOptimized" content="width"/>
+<meta name="HandheldFriendly" content="true"/>
+
+
+<meta name="applicable-device" content="pc,mobile">
+
+<meta name="theme-color" content="#f8f5ec" />
+<meta name="msapplication-navbutton-color" content="#f8f5ec">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="#f8f5ec">
+
+<meta name="mobile-web-app-capable" content="yes">
+
+<meta name="author" content="xiaosongsong" />
+  <meta name="description" content="werkzuge示例 一个简单的werkzuge示例如下所示:
+" />
+
+  <meta name="keywords" content="Python, linux, 个人博客" />
+
+
+
+
+
+
+<meta name="generator" content="Hugo 0.68.3" />
+
+
+<link rel="canonical" href="/post/werkzuge-request/" />
+
+
+
+
+
+<link rel="icon" href="/favicon.ico" />
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/sass/jane.min.af20b78e95c84de86b00a0242a4a77bd2601700e1b250edf27537d957ac0041d.css" integrity="sha256-ryC3jpXITehrAKAkKkp3vSYBcA4bJQ7fJ1N9lXrABB0=" media="screen" crossorigin="anonymous">
+
+
+
+
+
+<meta property="og:title" content="Werkzuge的一次请求和响应" />
+<meta property="og:description" content="werkzuge示例
+一个简单的werkzuge示例如下所示:" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="/post/werkzuge-request/" />
+<meta property="article:published_time" content="2020-02-04T16:01:23+08:00" />
+<meta property="article:modified_time" content="2020-02-04T16:01:23+08:00" />
+<meta itemprop="name" content="Werkzuge的一次请求和响应">
+<meta itemprop="description" content="werkzuge示例
+一个简单的werkzuge示例如下所示:">
+<meta itemprop="dateModified" content="2020-02-04T16:01:23&#43;08:00" />
+<meta itemprop="wordCount" content="3348">
+
+
+
+<meta itemprop="keywords" content="web,wsgi,python,flask," /><meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Werkzuge的一次请求和响应"/>
+<meta name="twitter:description" content="werkzuge示例
+一个简单的werkzuge示例如下所示:"/>
+
+<!--[if lte IE 9]>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/classlist/1.1.20170427/classList.min.js"></script>
+<![endif]-->
+
+<!--[if lt IE 9]>
+  <script src="https://cdn.jsdelivr.net/npm/html5shiv@3.7.3/dist/html5shiv.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/respond.js@1.4.2/dest/respond.min.js"></script>
+<![endif]-->
+
+
+
+
+</head>
+<body>
+  <div id="mobile-navbar" class="mobile-navbar">
+  <div class="mobile-header-logo">
+    <a href="/" class="logo">小松松的个人博客</a>
+  </div>
+  <div class="mobile-navbar-icon">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+</div>
+<nav id="mobile-menu" class="mobile-menu slideout-menu">
+  <ul class="mobile-menu-list">
+    <li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">主页</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">全部文章</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">标签</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">分类</a>
+          
+        
+      </li><li class="mobile-menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+        
+      </li>
+    
+
+    
+  </ul>
+</nav>
+
+
+  
+    
+
+
+
+
+
+
+  <link rel="stylesheet" href="/lib/photoswipe/photoswipe.min.css" />
+  <link rel="stylesheet" href="/lib/photoswipe/default-skin/default-skin.min.css" />
+
+
+
+
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+<div class="pswp__bg"></div>
+
+<div class="pswp__scroll-wrap">
+    
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    
+    <div class="pswp__ui pswp__ui--hidden">
+    <div class="pswp__top-bar">
+      
+      <div class="pswp__counter"></div>
+      <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+      <button class="pswp__button pswp__button--share" title="Share"></button>
+      <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+      <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+      
+      
+      <div class="pswp__preloader">
+        <div class="pswp__preloader__icn">
+          <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+      <div class="pswp__share-tooltip"></div>
+    </div>
+    <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+    </button>
+    <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+    </button>
+    <div class="pswp__caption">
+      <div class="pswp__caption__center"></div>
+    </div>
+    </div>
+    </div>
+</div>
+
+  
+
+  
+
+  
+
+  <header id="header" class="header container">
+    <div class="logo-wrapper">
+  <a href="/" class="logo">
+    
+      小松松的个人博客
+    
+  </a>
+</div>
+
+<nav class="site-navbar">
+  <ul id="menu" class="menu">
+    
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/">主页</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/post/">全部文章</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/tags/">标签</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/categories/">分类</a>
+          
+
+        
+
+      </li>
+    
+        <li class="menu-item">
+        
+          
+          
+            <a class="menu-item-link" href="/about/">About</a>
+          
+
+        
+
+      </li>
+    
+
+    
+    
+
+    
+  </ul>
+</nav>
+
+  </header>
+
+  <div id="mobile-panel">
+    <main id="main" class="main bg-llight">
+      <div class="content-wrapper">
+        <div id="content" class="content container">
+          <article class="post bg-white">
+    
+    <header class="post-header">
+      <h1 class="post-title">Werkzuge的一次请求和响应</h1>
+      
+      <div class="post-meta">
+        <time datetime="2020-02-04" class="post-time">
+          4029-23-04
+        </time>
+        <div class="post-category">
+            <a href="/categories/%E7%BC%96%E7%A8%8B/"> 编程 </a>
+            <a href="/categories/%E7%BD%91%E7%BB%9C/"> 网络 </a>
+            
+          </div>
+        
+
+        
+        
+
+        
+        
+      </div>
+    </header>
+
+    
+    
+<div class="post-toc" id="post-toc">
+  <h2 class="post-toc-title">Table of Contents</h2>
+  <div class="post-toc-content">
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#werkzuge示例">werkzuge示例</a></li>
+    <li><a href="#wsgi类的关联关系">WSGI类的关联关系</a></li>
+    <li><a href="#basewsgiserver的继承">BaseWSGIServer的继承</a></li>
+    <li><a href="#basewsgiserver类的方法和属性">BaseWSGIServer类的方法和属性</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#wsgirequesthandler的继承关系">WSGIRequestHandler的继承关系</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#关闭socket">关闭Socket</a></li>
+  </ul>
+</nav>
+  </div>
+</div>
+
+    
+    <div class="post-content">
+      <h2 id="werkzuge示例">werkzuge示例</h2>
+<p>一个简单的werkzuge示例如下所示:</p>
+<pre><code>import json
+from werkzeug.wrappers import Request, Response
+from werkzeug.serving import run_simple
+
+@Request.application
+def application(request):
+    response = Response(json.dumps({'code':0, 'msg': 'success'}),status=200)
+    return response
+
+if __name__ == '__main__':
+    run_simple('localhost',8000,application)
+</code></pre><p>运行werkzeug的程序的入口为<code>serving</code>文件的<code>run_simple</code>函数,该函数通过调用<code>make_server</code>函数来创建一个<em>Server</em>类,这个类继承了从<strong>HTTP</strong>到底层的<strong>socket</strong>类，通过运行<strong>serve_forever</strong>方法来实现接收数据和处理数据.</p>
+<h2 id="wsgi类的关联关系">WSGI类的关联关系</h2>
+<p>在<code>make_server</code>中使用了多个WSGI的类,分别是<strong>BaseWSGIServer</strong>,<strong>ForkingWSGIServer</strong>,<strong>ThreadedWSGIServer</strong>;不难看出后面两个是对<strong>BaseWSGIServer</strong>提供的多进程和多线程的支持.他们之间的继承关系如下所示:</p>
+<pre><code>            BaseWSGIServer
+            //        \\
+           //          \\
+ForkingWSGIServer   ThreadedWSGIServer
+</code></pre><p>一切的起源都是<strong>BaseWSGIServer</strong>，来看看这个类的作用.</p>
+<h2 id="basewsgiserver的继承">BaseWSGIServer的继承</h2>
+<pre><code>    BaseServer(socketserver)
+            ||
+            ||
+        TCPServer(socketserver)
+            ||
+            ||
+        HTTPServer(http/server)
+            ||
+            ||
+    BaseWSGIServer(werkzeug/server)
+</code></pre><h2 id="basewsgiserver类的方法和属性">BaseWSGIServer类的方法和属性</h2>
+<p><strong>BaseWSGIServer</strong>继承于<strong>HTTPServer</strong>,也就不难看出WSGI是连接web服务器与和应用程序之前的座桥梁. 详细请参考这篇文章: <a href="http://mitsuhiko.pocoo.org/wzdoc/wsgihowto.html">Werkzeug How WSGI Works</a></p>
+<h5 id="属性">属性</h5>
+<ul>
+<li>host and port: 需要监听的ip地址和端口，也是通常所说的socket.</li>
+<li>applicaion: web服务其要与之交互的应用程序.</li>
+<li>handler: 用作处理请求的handler类，也是实际由它实现了WSGI的功能和应用程序交互.</li>
+</ul>
+<p>我们知道在编写<strong>socketserver</strong>模块的服务端代码时,真正处理请求的是由我们自定义的<code>Handler</code>实现的. 而<code>http</code>和<code>werkzeug</code>都继承了这一思想，将处理请处理的方法放在<strong>Handler</strong>中，并在开始处理请求时实例化这个类. 默认<code>Handler</code>采用的是<strong>WSGIRequestHandler</strong>这个类. 初始化时如下:</p>
+<pre><code>if handler is None:
+    handler = WSGIRequestHandler
+</code></pre><h4 id="serve_forever监听socket">serve_forever()监听socket</h4>
+<p><strong>BaseWSGIServer</strong> 虽然自己从新实现了<strong>server_forever</strong>方法, 但并未做太多的事情，真正实现socket的数据接受和处理还是<strong>BaseServer</strong>中的这个方法.</p>
+<pre><code>    with _ServerSelector() as selector:
+        selector.register(self, selectors.EVENT_READ)
+
+        while not self.__shutdown_request:
+            ready = selector.select(poll_interval)
+            # bpo-35017: shutdown() called during select(), exit immediately.
+            if self.__shutdown_request:
+                break
+            if ready:
+                self._handle_request_noblock()
+
+            self.service_actions()
+</code></pre><p>使用<code>selector</code>实现io的多路复用，它可以根据操作系统平台实现不同的io多路复用机制，常见的是<code>select</code>,<code>poll</code>,<code>epoll</code>. 可以看到当有请求进来时调用了内部的<code>_handle_request_noblock</code>方法处理请求.</p>
+<h4 id="get_request-方法">get_request 方法</h4>
+<p>当一个请求进来时，werkzegu重写了<strong>get_request</strong>方法来建立客户端连接，返回一个请求的socket对象和客户端地址信息.</p>
+<pre><code>    con, info = self.socket.accept()
+    return con, info
+</code></pre><p>之后在函数内部调用<code>verify_request</code>和<code>process_request</code>实现对请求的验证和处理，这些实现还是在socketserver模块定义的<strong>BaseServer</strong>类中. 之后由<code>finish_request</code>这个方法实例化一个请求的<strong>handler</strong>类处理socket.</p>
+<pre><code>def finish_request(self, request, client_address):
+    &quot;&quot;&quot;Finish one request by instantiating RequestHandlerClass.&quot;&quot;&quot;
+    self.RequestHandlerClass(request, client_address, self)
+</code></pre><p>以下是WSGI的<code>handler</code>如何继承底层sockerserver的<code>handler</code>;可以看到和<strong>BaseWSGIServer</strong>的继承是一个样子.</p>
+<h2 id="wsgirequesthandler的继承关系">WSGIRequestHandler的继承关系</h2>
+<pre><code>    BaseRequestHandler(socketserver)
+            ||
+            ||
+    StreamRequestHandler(socketserver)
+            ||
+            ||
+    BaseHTTPRequestHandler(http/server)
+            ||
+            ||
+    WSGIRequestHandler(werkzeug/server)
+</code></pre><p>可以看到<strong>BaseRequestHandler</strong>接收一下属性:</p>
+<ul>
+<li>request: 每个请求的socket实例</li>
+<li>client_address： 客户端连接地址和端口</li>
+<li>server: 当前处理请求的server，对werkzeug来说就是<code>BaseWSGIServer</code></li>
+</ul>
+<p><em>handler</em>的实例化还是由基类<strong>BaseRequestHandler</strong>来实现的，之后一次调用<code>setup()</code>,<code>handler()</code>，<code>finish()</code>方法来完成处理请求. 此处的<strong>BaseRequestHandler</strong>则是一个接口，定义了需要实现的方法，而所有的具体方法处理逻辑则有对应派生类实现。</p>
+<h4 id="setup方法">setup()方法</h4>
+<p>注： 由于HTTP是基于TCP协议的，而这个<strong>setup()<strong>方法也是</strong>StreamRequestHandler</strong>(TCP)实现的.</p>
+<ol>
+<li>定义了<code>rfile</code>和<code>wfile</code>分别实现对socket的读和写. rfile设置了读缓存，wfile则没有缓存。</li>
+<li>是否禁用nagle 算法.</li>
+<li>设置超时时间</li>
+</ol>
+<h4 id="handle方法">handle()方法</h4>
+<p><strong>WSGIRequestHandler</strong>本身也只是调用父类的<strong>handler</strong>方法,之后调用了<strong>handle_one_request</strong>,WSGI重写了这个方法，主要做了三件事：</p>
+<ol>
+<li>获取http的请求行，也就是 <strong>GET /hello.txt HTTP/1.1\r\n</strong>,这样的二进制流数据.</li>
+<li>解析获取到的请求行，并封装成<code>request method</code>,<code>request path</code>,<code>request version</code> 和 获取请求头数据，并验证连接是否关闭.</li>
+<li>调用<code>run_wsgi()</code> 实现后续的数据处理.</li>
+</ol>
+<h4 id="run_wsgi方法">run_wsgi()方法</h4>
+<p>根据PEP333的规范，在服务器或网关的开发中，应用程序必须要接受两个位置参数：</p>
+<ol>
+<li>environ： 是一个字典对象，包含CGI样式的环境变量，而且必须是内置的Python字典.</li>
+<li>start_response： 是一个可调用对象，一般来说可以是一个函数.
+具体请参考PEP333官方文档:<a href="https://www.python.org/dev/peps/pep-0333/">https://www.python.org/dev/peps/pep-0333/</a>.</li>
+</ol>
+<p>Werkzeug的具体实现为： 在进入函数时通过<code>make_environ</code>函数生成当前wsgi所拥有的环境变量，通过<code>execute</code>方法将应用程序传递进来，也就是我们开头设置的应用程序.</p>
+<p>对于每个应用程序来说都加了<code>Request.application</code>这个类装饰器. 装饰器接收的参数也是wsgi提供的<code>envrion</code>和<code>response</code>对象。</p>
+<pre><code>def application(*args):
+    request = cls(args[-2])
+    with request:
+        try:
+            resp = f(*args[:-2] + (request,))
+        except HTTPException as e:
+            resp = e.get_response(args[-2])
+        return resp(*args[-2:])
+</code></pre><p>此处<em>request</em>为当前函数所在的类的实例，<em>f</em> 为我们执行应用程序对应的函数. 返回的<em>resp</em>也就是我们在应用程序中返回的对象,当一个可调用对象调用时会首先查找自己的<code>__call__</code>方法，此时这个装饰器返回的对象也就是<strong>Response</strong>中<code>__call__</code>方法返回的数据。</p>
+<h4 id="response__call__方法">Response.__call__方法</h4>
+<p>处理WSGI引用程序提供的响应数据，参数分别为WSGI的环境变量字典<code>environ</code>和<strong>Handler</strong>类中的<strong>start_response</strong>,函数返回一个迭代器，响应的数据都放在这个迭代器中.</p>
+<p>一个http的响应依次为首行，响应头，响应体如下:</p>
+<pre><code> HTTP/1.1 200 OK
+</code></pre><p>在这个函数中通过<code>environ</code>变量封装了对应的状态码和响应头，状态码是在应用程序中调用<strong>Response</strong>类实例化时就直接当成属性的方式赋值的，而响应头则调用<strong>get_wsgi_headers</strong>函数构造. 之后就开始调用<strong>start_response</strong>构造响应的数据.</p>
+<p>在<strong>start_response</strong>中将响应放在了<code>headers_set</code>这个列表中，而这个<code>headers_set</code>是个<code>run_wsgi</code>变量通过闭包的形式修改.</p>
+<p>而实际响应的数据则由放在了迭代器<code>app_iter</code>中.</p>
+<pre><code>    application_iter = app(environ, start_response)
+</code></pre><p>接下来便是通过socket发送数据了. 来看一下<strong>write</strong>方法.</p>
+<h4 id="write函数">write函数</h4>
+<ol>
+<li>封装请求行
+<code>write</code>行数在响应数据之前先通过放在<code>headers_set</code>列表构造响应头和响应行. 并调用<code>send_response</code>行数发送响应行.</li>
+</ol>
+<pre><code>if self.request_version != &quot;HTTP/0.9&quot;:
+    hdr = &quot;%s %d %s\r\n&quot; % (self.protocol_version, code, message)
+    self.wfile.write(hdr.encode(&quot;ascii&quot;))
+</code></pre><ol start="2">
+<li>
+<p>封装响应头
+之后封装响应头数据，并通过<code>send_header</code>函数发送响应头.而<code>send_header</code>只是将所有的请求头格式化放在一个列表中用于缓存,之后封装了一些基本的http响应头,如：<strong>Server</strong>,<strong>Date</strong>,结束后调用<strong>end_headers</strong>函数封装最后的<code>\r\n</code>并通过<code>flush_headers</code>函数将数据发送出去.</p>
+</li>
+<li>
+<p>发送响应数据</p>
+</li>
+</ol>
+<pre><code>if data:
+    # Only write data if there is any to avoid Python 3.5 SSL bug
+    self.wfile.write(data)
+self.wfile.flush()
+</code></pre><p>最后通过调用迭代器的<code>close()</code>方法关闭数据. 次数WSGI侧数据的数据发送已经完成.</p>
+<h2 id="关闭socket">关闭Socket</h2>
+<p>此情况为一个socket连接响应一个请求，所以在响应完成后<code>Handler</code>的<strong>close_connection</strong>会被设置为True,此时开始关闭socket.
+首先调用<strong>finish</strong>函数对<code>wfile</code>和<code>rfile</code>进行关闭;然后在调用<strong>shutdown_request</strong>对应socket进行关闭.</p>
+<pre><code>def handle(self):
+    &quot;&quot;&quot;Handle multiple requests if necessary.&quot;&quot;&quot;
+    self.close_connection = True
+
+    self.handle_one_request()
+    while not self.close_connection:
+        self.handle_one_request()
+</code></pre><p>由<code>handler</code>可以看出在处理请求之前就在<code>close_connection</code>属性设置为True，也就无法重用一个Socket.</p>
+    </div>
+
+    
+    
+<div class="post-copyright">
+  <p class="copyright-item">
+    <span class="item-title">Author</span>
+    <span class="item-content">xiaosongsong</span>
+  </p>
+  <p class="copyright-item">
+    <span class="item-title">LastMod</span>
+    <span class="item-content">
+      4029-23-04
+      
+    </span>
+  </p>
+  
+  <p class="copyright-item">
+    <span class="item-title">License</span>
+    <span class="item-content"><a rel="license noopener" href="https://creativecommons.org/licenses/by-nc-nd/4.0/" target="_blank">欢迎转载分享，请注明出处！</a></span>
+  </p>
+</div>
+
+
+    
+    
+
+    <footer class="post-footer">
+      <div class="post-tags">
+          <a href="/tags/web/">web</a>
+          <a href="/tags/wsgi/">wsgi</a>
+          <a href="/tags/python/">python</a>
+          <a href="/tags/flask/">flask</a>
+          
+        </div>
+
+      
+      <nav class="post-nav">
+        
+          <a class="prev" href="/post/socket-for-ioevent/">
+            
+            <i class="iconfont">
+              <svg  class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M691.908486 949.511495l75.369571-89.491197c10.963703-12.998035 10.285251-32.864502-1.499144-44.378743L479.499795 515.267417 757.434875 204.940602c11.338233-12.190647 11.035334-32.285311-0.638543-44.850487l-80.46666-86.564541c-11.680017-12.583596-30.356378-12.893658-41.662889-0.716314L257.233596 494.235404c-11.332093 12.183484-11.041474 32.266891 0.657986 44.844348l80.46666 86.564541c1.772366 1.910513 3.706415 3.533476 5.750981 4.877077l306.620399 321.703933C662.505829 963.726242 680.945807 962.528973 691.908486 949.511495z"></path>
+</svg>
+
+            </i>
+            <span class="prev-text nav-default">从socket看事件驱动</span>
+            <span class="prev-text nav-mobile">Prev</span>
+          </a>
+        
+          <a class="next" href="/post/python-skill/">
+            <span class="next-text nav-default">Python 技巧</span>
+            <span class="prev-text nav-mobile">Next</span>
+            
+            <i class="iconfont">
+              <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="18" height="18">
+  <path d="M332.091514 74.487481l-75.369571 89.491197c-10.963703 12.998035-10.285251 32.864502 1.499144 44.378743l286.278095 300.375162L266.565125 819.058374c-11.338233 12.190647-11.035334 32.285311 0.638543 44.850487l80.46666 86.564541c11.680017 12.583596 30.356378 12.893658 41.662889 0.716314l377.434212-421.426145c11.332093-12.183484 11.041474-32.266891-0.657986-44.844348l-80.46666-86.564541c-1.772366-1.910513-3.706415-3.533476-5.750981-4.877077L373.270379 71.774697C361.493148 60.273758 343.054193 61.470003 332.091514 74.487481z"></path>
+</svg>
+
+            </i>
+          </a>
+      </nav>
+    </footer>
+  </article>
+
+  
+  
+
+  
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+    
+
+  
+
+        </div>
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="icon-links">
+  
+  
+    <a href="https://github.com/busyboy-ws" rel="me noopener" class="iconfont"
+      title="github"  target="_blank"
+      >
+      <svg class="icon" style="" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="36" height="36">
+  <path d="M512 12.672c-282.88 0-512 229.248-512 512 0 226.261333 146.688 418.133333 350.08 485.76 25.6 4.821333 34.986667-11.008 34.986667-24.618667 0-12.16-0.426667-44.373333-0.64-87.04-142.421333 30.890667-172.458667-68.693333-172.458667-68.693333C188.672 770.986667 155.008 755.2 155.008 755.2c-46.378667-31.744 3.584-31.104 3.584-31.104 51.413333 3.584 78.421333 52.736 78.421333 52.736 45.653333 78.293333 119.850667 55.68 149.12 42.581333 4.608-33.109333 17.792-55.68 32.426667-68.48-113.706667-12.8-233.216-56.832-233.216-253.013333 0-55.893333 19.84-101.546667 52.693333-137.386667-5.76-12.928-23.04-64.981333 4.48-135.509333 0 0 42.88-13.738667 140.8 52.48 40.96-11.392 84.48-17.024 128-17.28 43.52 0.256 87.04 5.888 128 17.28 97.28-66.218667 140.16-52.48 140.16-52.48 27.52 70.528 10.24 122.581333 5.12 135.509333 32.64 35.84 52.48 81.493333 52.48 137.386667 0 196.693333-119.68 240-233.6 252.586667 17.92 15.36 34.56 46.762667 34.56 94.72 0 68.522667-0.64 123.562667-0.64 140.202666 0 13.44 8.96 29.44 35.2 24.32C877.44 942.592 1024 750.592 1024 524.672c0-282.752-229.248-512-512-512"></path>
+</svg>
+
+    </a>
+
+
+<a href="/index.xml" rel="noopener alternate" type="application/rss&#43;xml"
+    class="iconfont" title="rss" target="_blank">
+    <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="30" height="30">
+  <path d="M819.157333 1024C819.157333 574.592 449.408 204.8 0 204.8V0c561.706667 0 1024 462.293333 1024 1024h-204.842667zM140.416 743.04a140.8 140.8 0 0 1 140.501333 140.586667A140.928 140.928 0 0 1 140.074667 1024C62.72 1024 0 961.109333 0 883.626667s62.933333-140.544 140.416-140.586667zM678.784 1024h-199.04c0-263.210667-216.533333-479.786667-479.744-479.786667V345.173333c372.352 0 678.784 306.517333 678.784 678.826667z"></path>
+</svg>
+
+  </a>
+   
+</div>
+
+<div class="copyright">
+  <span class="power-by">
+    Powered by <a class="hexo-link" href="https://gohugo.io">Hugo</a>
+  </span>
+  <span class="division">|</span>
+  <span class="theme-info">
+    Theme - <a class="theme-link" href="https://github.com/xianmin/hugo-theme-jane">Jane</a>
+  </span>
+
+  <span class="copyright-year">
+    &copy;
+    2020
+    <span class="heart">
+      
+      <i class="iconfont">
+        <svg class="icon" viewBox="0 0 1025 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="14" height="14">
+  <path d="M1000.1 247.9c-15.5-37.3-37.6-70.6-65.7-98.9-54.4-54.8-125.8-85-201-85-85.7 0-166 39-221.4 107.4C456.6 103 376.3 64 290.6 64c-75.1 0-146.5 30.4-201.1 85.6-28.2 28.5-50.4 61.9-65.8 99.3-16 38.8-24 79.9-23.6 122.2 0.7 91.7 40.1 177.2 108.1 234.8 3.1 2.6 6 5.1 8.9 7.8 14.9 13.4 58 52.8 112.6 102.7 93.5 85.5 209.9 191.9 257.5 234.2 7 6.1 15.8 9.5 24.9 9.5 9.2 0 18.1-3.4 24.9-9.5 34.5-30.7 105.8-95.9 181.4-165 74.2-67.8 150.9-138 195.8-178.2 69.5-57.9 109.6-144.4 109.9-237.3 0.1-42.5-8-83.6-24-122.2z"
+   fill="#8a8a8a"></path>
+</svg>
+
+      </i>
+    </span><span class="author">
+        小松松
+        
+      </span></span>
+
+  
+  
+
+  
+</div>
+
+    </footer>
+
+    <div class="back-to-top" id="back-to-top">
+      <i class="iconfont">
+        
+        <svg class="icon" viewBox="0 0 1024 1024" version="1.1"
+  xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+  width="35" height="35">
+  <path d="M510.866688 227.694839 95.449397 629.218702l235.761562 0-2.057869 328.796468 362.40389 0L691.55698 628.188232l241.942331-3.089361L510.866688 227.694839zM63.840492 63.962777l894.052392 0 0 131.813095L63.840492 195.775872 63.840492 63.962777 63.840492 63.962777zM63.840492 63.962777"></path>
+</svg>
+
+      </i>
+    </div>
+  </div>
+  
+<script type="text/javascript" src="/lib/jquery/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="/lib/slideout/slideout-1.0.1.min.js"></script>
+
+
+
+
+<script type="text/javascript" src="/js/main.638251f4230630f0335d8c6748e53a96f94b72670920b60c09a56fdc8bece214.js" integrity="sha256-Y4JR9CMGMPAzXYxnSOU6lvlLcmcJILYMCaVv3Ivs4hQ=" crossorigin="anonymous"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <script type="text/javascript" src="/js/load-photoswipe.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe.min.js"></script>
+    <script type="text/javascript" src="/lib/photoswipe/photoswipe-ui-default.min.js"></script>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

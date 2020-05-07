@@ -3,8 +3,8 @@ title: "从socket看事件驱动"
 date: 2020-04-11T16:01:23+08:00
 lastmod: 2020-04-11T16:01:23+08:00
 draft: false
-tags: []
-categories: []
+tags: ["python","socket",]
+categories: ["源码","网络"]
 ---
 
 ## 前言
@@ -124,7 +124,6 @@ def serve():
     outputs=[]
     s.setblocking(True)
     while True:
-
         r,w,e=select.select(inputs,outputs,inputs)
         print("readables number: ", len(inputs))  #注释2
         for obj in r:
@@ -132,7 +131,6 @@ def serve():
                 conn,addr=obj.accept()
                 conn.setblocking(0)
                 inputs.append(conn)
-
             else:
                 data_recv = obj.recv(1024)
                 if not data_recv:
@@ -143,7 +141,6 @@ def serve():
                 if data_recv:
                     if obj not in outputs:
                         outputs.append(obj)
-
         for obj in w:
             # print('deal socket...') # 注释1
             time.sleep(5)
@@ -156,7 +153,6 @@ def serve():
             if obj in outputs:
                 outputs.remove(obj)
             obj.close()
-
 ```
 对于上面的注释我在这里解释一下,前面说过select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写.所以说当它在负责读写的时候由于我们`sleep 5`秒钟，那么所有的socket处理数据都会阻塞掉，在当我停止`ab`压测时，由于当前的socket连接已经关闭，所以在**注释1**处就会出现报错.**注释2**是采用另一种方式验证,即统计当前就绪读状态下的**socket**的数量.
 ```
@@ -228,7 +224,6 @@ def server():
         while True:
             for fd, event in my_poll.poll():
                 if event == select.POLLIN:
-
                     if fd == s.fileno():
                         conn,addr = s.accept()
                         conn.setblocking(False)
@@ -254,7 +249,7 @@ def server():
         print(123)
         s.close()
 ```
-同样的道理我们无法在请求处理过程中看到并发的效果(也就是`select.POLLOUT`事件下),可以在`POLLIN`模式下通过简单的打印来看并发的请求.
+同样的道理我们无法在请求处理过程中看到并发的效果(也就是`select.POLLOUT`事件下),可以在`POLLIN`事件中通过简单的打印来看并发的请求.
 
 当我们指定高并发时，比如100个,可以看到快速的`print`出数据来.
 ```
@@ -388,6 +383,8 @@ with _ServerSelector() as selector:
 事件驱动I/O的一个潜在的优势在于它可以在不使用多线程或者多进程的情况下同时处理大量的连接.也就是说,`select()`可以来监视成千上百个socket,并且对他们中间发送的事件做出响应.
 
 事件驱动的缺点在于这里没有涉及真正的并发.如果一个事件的处理方法阻塞了或者执行了一个较长的耗时计算(也就是我们在列子中指定的`sleep`函数),那么之后所有的处理请求过程都会阻塞.
+
+代码地址：[https://github.com/busyboy-ws/my_code/tree/master/python/io_event](https://github.com/busyboy-ws/my_code/tree/master/python/io_event)
 
 ## 参考
 
