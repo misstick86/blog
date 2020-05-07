@@ -65,7 +65,6 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             conn.sendall(json.dumps({'code':200,'msg':'success'}).encode())
     s.close()
 ```
-
 此时你可以通过浏览器或者使用`curl`命令来作为http客户端发起请求，可以看到服务器响应了一个json格式的数据.
 
 ```
@@ -90,12 +89,11 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 
 在之前的一篇文章中讲过,werkzuge后端还是调用socketserver中的`serve_forever`方法来监听socket. 从源码上可以看出也是使用`select`,`poll`,`epoll`这样io事件模型. 我来详细描述下:
 
-select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的,所以我们可以看到werkzuge虽然接收了并发的10个请求,但每个请求的响应还是串行的,也就是说响应这些请求的总时间是和我们自定义的单线程是一样的(50s).
+select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的,所以我们可以看到werkzuge虽然接收了并发的10个请求,但每个处理还是串行的,也就是说响应这些请求的总时间是和我们自定义的单线程是一样的(50s).
 
-select, poll, epoll 都是一种 I/O 复用的机制。它们都是通过一种机制(其实也就是轮训监听的描述符)来监视多个描述符，一旦某个描述符就绪了，就能通知程序进行相应的读写操作.Python中也提供了对应的模块实现该功能**select**!
+select, poll, epoll 都是一种 I/O 复用的机制。它们都是通过一种机制(其实也就是轮训监听的描述符)来监视多个描述符，一旦某个描述符就绪了，就能通知程序进行相应的读写操作.Python中也提供了对应的模块实现改功能**select**!
 
 **select** 模块实现了上述的三个I/O复用机制,我们来看一下select定义.
-
 ```
  def select(rlist, wlist, xlist, timeout=None):
 ```
@@ -156,9 +154,7 @@ def serve():
                 outputs.remove(obj)
             obj.close()
 ```
-
 对于上面的注释我在这里解释一下,前面说过select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写.所以说当它在负责读写的时候由于我们`sleep 5`秒钟，那么所有的socket处理数据都会阻塞掉，在当我停止`ab`压测时，由于当前的socket连接已经关闭，所以在**注释1**处就会出现报错.**注释2**是采用另一种方式验证,即统计当前就绪读状态下的**socket**的数量.
-
 ```
 listen: http://127.0.0.1:8000
 readables number:  1
@@ -173,7 +169,6 @@ readables number:  9
 readables number:  10
 readables number:  11
 ```
-
 我们这里指定并发10个请求,再加上处于监听的socket刚好11个. 这也就验证了上面所在的io事件驱动本质:**在接收请求中提供一种并发现象,在处理请求中本质是还是同步io**.
 
 ## io事件poll
@@ -194,16 +189,15 @@ poll本质上和select没有区别，只是没有了最大连接数(linux上默�
 `select.poll()`: 返回一个poll对象,并支持`sizehint`参数来优化内部数据结构,该对象支持一下方法.
 
 **eventmask**表示一个可选的掩码位,用于描述要检查的事件类型,其值是一下的集合：
-
-| 名称      | 含义                                   |
-| --------- | -------------------------------------- |
-| POLLIN    | 有数据读                               |
-| POLLPRI   | 有数据紧急读                           |
-| POLLOUT   | 数据输出，并且不会阻塞                 |
-| POLLERR   | 某种错误情况                           |
-| POLLHUP   | 挂起T                                  |
+|   名称    |                  含义                  |
+| :-------: | :------------------------------------: |
+|  POLLIN   |                有数据读                |
+|  POLLPRI  |              有数据紧急读              |
+|  POLLOUT  |         数据输出，并且不会阻塞         |
+|  POLLERR  |              某种错误情况              |
+|  POLLHUP  |                 挂起T                  |
 | POLLRDHUP | 准备关闭流socket或等待另外一半连接关闭 |
-| POLLNVAL  | 无效的请求：描述符未打开               |
+| POLLNVAL  |        无效的请求：描述符未打开        |
 
 - `register(self, fd, eventmask=None)`:  向poll对象中注册一个文件描述符,如果已经存在则抛出一个OS Error.
 - `unregister(self, fd)`:  从poll对象中删除已经注册的描述符
@@ -211,7 +205,6 @@ poll本质上和select没有区别，只是没有了最大连接数(linux上默�
 - `poll(self, timeout=-1, maxevents=-1)`: 轮训已经注册的文件描述符,返回一个包含`(fd,event)`两个元素的元组列表. 如果列表为空则表示超时或者没有对应的io事件发生;`timeout`表示系统等待返回事件的超时时间，单位毫秒；如果为None,负数,或者不指定则一直阻塞下去.
 
 用此种模式改写我们自己的socket服务如下:
-
 ```
 import select, socket,time,json
 
@@ -259,7 +252,6 @@ def server():
 同样的道理我们无法在请求处理过程中看到并发的效果(也就是`select.POLLOUT`事件下),可以在`POLLIN`事件中通过简单的打印来看并发的请求.
 
 当我们指定高并发时，比如100个,可以看到快速的`print`出数据来.
-
 ```
 ab -c 100 -n 1000 http://localhost:8000/
 ```
@@ -267,15 +259,12 @@ ab -c 100 -n 1000 http://localhost:8000/
 ## io事件epoll
 
 #### poll的缺点
-
 poll解除select最大1024个描述符限制,其他的和select类似.事实上，同时连接的大量客户端在一时刻可能只有很少的处于就绪状态，因此随着监视的描述符数量的增长，其效率也会线性下降。
 
 #### 什么是epoll
-
 epoll是在2.6内核中提出的，是之前的select和poll的增强版本。相对于select和poll来说，epoll更加灵活，没有描述符限制。epoll使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中，这样在用户空间和内核空间的copy只需一次。
 
 关于上面的缺点epoll使用了一下方案来解决：
-
 - **内核copy** 在底层使用**mmap()**文件映射的方式加速与内核空间的数据传递
 - **最大连接数** 最大连接数取决你操作系统定义的**file_max**,也就是说取决与操作系统的限制,而且这个值可以修改.
 - **fd轮训** epoll采用了回调的机制来管理已就绪的fd,所以epoll永远管理的是一个已就绪的列表
@@ -283,39 +272,35 @@ epoll是在2.6内核中提出的，是之前的select和poll的增强版本。�
 这里有一个思考，epoll更像是一个高贵的公子,自己拿到的东西永远都是已经准备好的(就绪的fd),但是是谁在为它准备这些已就绪的fd呢？ 看有些文章说是Python底层在做这件事情.
 
 epoll对与fd的操作有两种模式： **LT level trigger(水平出发)** 和 **ET edge trigger(边沿触发)**.
-
 - LT模式：当检测到描述符事件发生并将此事件通知应用程序，应用程序可以不立即处理该事件。下次调用epoll_wait时，会再次响应应用程序并通知此事件。
 - ET模式：当检测到描述符事件发生并将此事件通知应用程序，应用程序必须立即处理该事件。如果不处理，下次调用epoll_wait时，不会再次响应应用程序并通知此事件。
 
 #### python中的epoll
 
 epoll模型也是在select模块中，如果需要一个epoll对象直接实例化就可以了！
-
 ```
 epoll = select.epoll(sizehint=-1, flags=0)
 ```
-
 - sizehint： 这个参数没有太多的意义，仅仅使用在没有`epoll_create1()`系统调用的老系统中
 - flags： 这个参数已弃用，在python3.4之后就直接使用**select.EPOLL_CLOEXEC**,不用管.
 
 并且在3.4之后支持和`with`语句一起协同工作.
 
 epoll中的事件:
-
-| 名称        | 含义                                   |
-| ----------- | -------------------------------------- |
-| EPOLLIN     | 读就绪                                 |
-| EPOLLOUT    | 写就绪                                 |
-| EPOLLPRI    | 有数据紧急读                           |
-| EPOLLERR    | assoc,fd 上发生错误                    |
-| EPOLLHUP    | assoc,fd 上发生挂起                    |
-| EPOLLET     | 设置边沿触发，默认是水平触发           |
+|    名称     |                  含义                  |
+| :---------: | :------------------------------------: |
+|   EPOLLIN   |                 读就绪                 |
+|  EPOLLOUT   |                 写就绪                 |
+|  EPOLLPRI   |              有数据紧急读              |
+|  EPOLLERR   |          assoc,fd 上发生错误           |
+|  EPOLLHUP   |          assoc,fd 上发生挂起           |
+|   EPOLLET   |      设置边沿触发，默认是水平触发      |
 | EPOLLRDHUP  | 准备关闭流socket或等待另外一半连接关闭 |
-| EPOLLRDNORM | 和EPOLLIN一样                          |
-| EPOLLRDBAND | 可以读取高优先级数据                   |
-| EPOLLWRNORM | 和EPOLLOUT一样                         |
-| EPOLLWRNORM | 可以写取高优先级数据                   |
-| EPOLLMSG    | 忽略                                   |
+| EPOLLRDNORM |             和EPOLLIN一样              |
+| EPOLLRDBAND |          可以读取高优先级数据          |
+| EPOLLWRNORM |             和EPOLLOUT一样             |
+| EPOLLWRNORM |          可以写取高优先级数据          |
+|  EPOLLMSG   |                  忽略                  |
 
 epoll中提供了一下方法:
 
@@ -331,6 +316,7 @@ epoll中提供了一下方法:
 import select,socket,json,time
 
 l_addr=('127.0.0.1',8000)
+
 
 def server():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -373,13 +359,11 @@ def server():
         epoll.close()
         s.close()
 ```
-
 使用上面的`ab`压测你会发现**注释1**和并发的连接数是一样的大约在100个左右(ab一次100个并发),在**注释2**处的接收请求数据很快就打印100个，和poll类似.
 
 ## 高级别selectors模块
 
 这个模块是`select`扩展,可以根据用户的系统选择合适的io模型，官方也鼓励使用这个模块.这里就不多讲解了,贴一下**server_forver**的源码供大家参考:
-
 ```
 with _ServerSelector() as selector:
     selector.register(self, selectors.EVENT_READ)
@@ -405,9 +389,6 @@ with _ServerSelector() as selector:
 ## 参考
 
 [HTTP消息结构](https://www.runoob.com/http/http-messages.html)
-
 [Linux下I/O多路复用select, poll, epoll 三种模型的Python使用](https://www.jianshu.com/p/abfb47d36fba)
-
 [How To Use Linux epoll with Python](http://scotdoyle.com/python-epoll-howto.html)
-
 [select — Waiting for I/O completion](https://docs.python.org/3/library/select.html#poll-objects)

@@ -83,7 +83,7 @@ io事件驱动和多线程和多进程有什么关系呢？(也考虑过和协�
 带着这样的问题，我做了以下的代码编写.">
 <meta itemprop="datePublished" content="2020-04-11T16:01:23&#43;08:00" />
 <meta itemprop="dateModified" content="2020-04-11T16:01:23&#43;08:00" />
-<meta itemprop="wordCount" content="4664">
+<meta itemprop="wordCount" content="4734">
 
 
 
@@ -425,8 +425,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 </ul>
 <h2 id="io事件select">IO事件select</h2>
 <p>在之前的一篇文章中讲过,werkzuge后端还是调用socketserver中的<code>serve_forever</code>方法来监听socket. 从源码上可以看出也是使用<code>select</code>,<code>poll</code>,<code>epoll</code>这样io事件模型. 我来详细描述下:</p>
-<p>select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的,所以我们可以看到werkzuge虽然接收了并发的10个请求,但每个请求的响应还是串行的,也就是说响应这些请求的总时间是和我们自定义的单线程是一样的(50s).</p>
-<p>select, poll, epoll 都是一种 I/O 复用的机制。它们都是通过一种机制(其实也就是轮训监听的描述符)来监视多个描述符，一旦某个描述符就绪了，就能通知程序进行相应的读写操作.Python中也提供了对应的模块实现该功能<strong>select</strong>!</p>
+<p>select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的,所以我们可以看到werkzuge虽然接收了并发的10个请求,但每个处理还是串行的,也就是说响应这些请求的总时间是和我们自定义的单线程是一样的(50s).</p>
+<p>select, poll, epoll 都是一种 I/O 复用的机制。它们都是通过一种机制(其实也就是轮训监听的描述符)来监视多个描述符，一旦某个描述符就绪了，就能通知程序进行相应的读写操作.Python中也提供了对应的模块实现改功能<strong>select</strong>!</p>
 <p><strong>select</strong> 模块实现了上述的三个I/O复用机制,我们来看一下select定义.</p>
 <pre><code> def select(rlist, wlist, xlist, timeout=None):
 </code></pre><p>这三个参数都是一个数组，数组中的内容均为一个文件描述符(file descriptor)对象或者一个拥有返回文件描述符方法<code>fileno()</code>的对象.</p>
@@ -506,45 +506,16 @@ readables number:  11
 <p>poll本质上和select没有区别，只是没有了最大连接数(linux上默认1024个)的限制，原因是它基于链表存储的。</p>
 <h4 id="python中的poll">python中的poll</h4>
 <p><code>select.poll()</code>: 返回一个poll对象,并支持<code>sizehint</code>参数来优化内部数据结构,该对象支持一下方法.</p>
-<p><strong>eventmask</strong>表示一个可选的掩码位,用于描述要检查的事件类型,其值是一下的集合：</p>
-<table>
-<thead>
-<tr>
-<th>名称</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>POLLIN</td>
-<td>有数据读</td>
-</tr>
-<tr>
-<td>POLLPRI</td>
-<td>有数据紧急读</td>
-</tr>
-<tr>
-<td>POLLOUT</td>
-<td>数据输出，并且不会阻塞</td>
-</tr>
-<tr>
-<td>POLLERR</td>
-<td>某种错误情况</td>
-</tr>
-<tr>
-<td>POLLHUP</td>
-<td>挂起T</td>
-</tr>
-<tr>
-<td>POLLRDHUP</td>
-<td>准备关闭流socket或等待另外一半连接关闭</td>
-</tr>
-<tr>
-<td>POLLNVAL</td>
-<td>无效的请求：描述符未打开</td>
-</tr>
-</tbody>
-</table>
+<p><strong>eventmask</strong>表示一个可选的掩码位,用于描述要检查的事件类型,其值是一下的集合：
+|   名称    |                  含义                  |
+| :&mdash;&mdash;-: | :&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;: |
+|  POLLIN   |                有数据读                |
+|  POLLPRI  |              有数据紧急读              |
+|  POLLOUT  |         数据输出，并且不会阻塞         |
+|  POLLERR  |              某种错误情况              |
+|  POLLHUP  |                 挂起T                  |
+| POLLRDHUP | 准备关闭流socket或等待另外一半连接关闭 |
+| POLLNVAL  |        无效的请求：描述符未打开        |</p>
 <ul>
 <li><code>register(self, fd, eventmask=None)</code>:  向poll对象中注册一个文件描述符,如果已经存在则抛出一个OS Error.</li>
 <li><code>unregister(self, fd)</code>:  从poll对象中删除已经注册的描述符</li>
@@ -622,65 +593,21 @@ def server():
 <li>flags： 这个参数已弃用，在python3.4之后就直接使用<strong>select.EPOLL_CLOEXEC</strong>,不用管.</li>
 </ul>
 <p>并且在3.4之后支持和<code>with</code>语句一起协同工作.</p>
-<p>epoll中的事件:</p>
-<table>
-<thead>
-<tr>
-<th>名称</th>
-<th>含义</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>EPOLLIN</td>
-<td>读就绪</td>
-</tr>
-<tr>
-<td>EPOLLOUT</td>
-<td>写就绪</td>
-</tr>
-<tr>
-<td>EPOLLPRI</td>
-<td>有数据紧急读</td>
-</tr>
-<tr>
-<td>EPOLLERR</td>
-<td>assoc,fd 上发生错误</td>
-</tr>
-<tr>
-<td>EPOLLHUP</td>
-<td>assoc,fd 上发生挂起</td>
-</tr>
-<tr>
-<td>EPOLLET</td>
-<td>设置边沿触发，默认是水平触发</td>
-</tr>
-<tr>
-<td>EPOLLRDHUP</td>
-<td>准备关闭流socket或等待另外一半连接关闭</td>
-</tr>
-<tr>
-<td>EPOLLRDNORM</td>
-<td>和EPOLLIN一样</td>
-</tr>
-<tr>
-<td>EPOLLRDBAND</td>
-<td>可以读取高优先级数据</td>
-</tr>
-<tr>
-<td>EPOLLWRNORM</td>
-<td>和EPOLLOUT一样</td>
-</tr>
-<tr>
-<td>EPOLLWRNORM</td>
-<td>可以写取高优先级数据</td>
-</tr>
-<tr>
-<td>EPOLLMSG</td>
-<td>忽略</td>
-</tr>
-</tbody>
-</table>
+<p>epoll中的事件:
+|    名称     |                  含义                  |
+| :&mdash;&mdash;&mdash;: | :&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;&mdash;: |
+|   EPOLLIN   |                 读就绪                 |
+|  EPOLLOUT   |                 写就绪                 |
+|  EPOLLPRI   |              有数据紧急读              |
+|  EPOLLERR   |          assoc,fd 上发生错误           |
+|  EPOLLHUP   |          assoc,fd 上发生挂起           |
+|   EPOLLET   |      设置边沿触发，默认是水平触发      |
+| EPOLLRDHUP  | 准备关闭流socket或等待另外一半连接关闭 |
+| EPOLLRDNORM |             和EPOLLIN一样              |
+| EPOLLRDBAND |          可以读取高优先级数据          |
+| EPOLLWRNORM |             和EPOLLOUT一样             |
+| EPOLLWRNORM |          可以写取高优先级数据          |
+|  EPOLLMSG   |                  忽略                  |</p>
 <p>epoll中提供了一下方法:</p>
 <ul>
 <li><code>register(self, fd, eventmask=None)</code> 向epoll中注册一个fd,如果已经存在就会包OS Error.</li>
@@ -694,6 +621,7 @@ def server():
 <pre><code>import select,socket,json,time
 
 l_addr=('127.0.0.1',8000)
+
 
 def server():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -755,10 +683,10 @@ def server():
 <p>事件驱动的缺点在于这里没有涉及真正的并发.如果一个事件的处理方法阻塞了或者执行了一个较长的耗时计算(也就是我们在列子中指定的<code>sleep</code>函数),那么之后所有的处理请求过程都会阻塞.</p>
 <p>代码地址：<a href="https://github.com/busyboy-ws/my_code/tree/master/python/io_event">https://github.com/busyboy-ws/my_code/tree/master/python/io_event</a></p>
 <h2 id="参考">参考</h2>
-<p><a href="https://www.runoob.com/http/http-messages.html">HTTP消息结构</a></p>
-<p><a href="https://www.jianshu.com/p/abfb47d36fba">Linux下I/O多路复用select, poll, epoll 三种模型的Python使用</a></p>
-<p><a href="http://scotdoyle.com/python-epoll-howto.html">How To Use Linux epoll with Python</a></p>
-<p><a href="https://docs.python.org/3/library/select.html#poll-objects">select — Waiting for I/O completion</a></p>
+<p><a href="https://www.runoob.com/http/http-messages.html">HTTP消息结构</a>
+<a href="https://www.jianshu.com/p/abfb47d36fba">Linux下I/O多路复用select, poll, epoll 三种模型的Python使用</a>
+<a href="http://scotdoyle.com/python-epoll-howto.html">How To Use Linux epoll with Python</a>
+<a href="https://docs.python.org/3/library/select.html#poll-objects">select — Waiting for I/O completion</a></p>
     </div>
 
     

@@ -310,8 +310,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
 &lt;/ul&gt;
 &lt;h2 id=&#34;io事件select&#34;&gt;IO事件select&lt;/h2&gt;
 &lt;p&gt;在之前的一篇文章中讲过,werkzuge后端还是调用socketserver中的&lt;code&gt;serve_forever&lt;/code&gt;方法来监听socket. 从源码上可以看出也是使用&lt;code&gt;select&lt;/code&gt;,&lt;code&gt;poll&lt;/code&gt;,&lt;code&gt;epoll&lt;/code&gt;这样io事件模型. 我来详细描述下:&lt;/p&gt;
-&lt;p&gt;select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的,所以我们可以看到werkzuge虽然接收了并发的10个请求,但每个请求的响应还是串行的,也就是说响应这些请求的总时间是和我们自定义的单线程是一样的(50s).&lt;/p&gt;
-&lt;p&gt;select, poll, epoll 都是一种 I/O 复用的机制。它们都是通过一种机制(其实也就是轮训监听的描述符)来监视多个描述符，一旦某个描述符就绪了，就能通知程序进行相应的读写操作.Python中也提供了对应的模块实现该功能&lt;strong&gt;select&lt;/strong&gt;!&lt;/p&gt;
+&lt;p&gt;select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的,所以我们可以看到werkzuge虽然接收了并发的10个请求,但每个处理还是串行的,也就是说响应这些请求的总时间是和我们自定义的单线程是一样的(50s).&lt;/p&gt;
+&lt;p&gt;select, poll, epoll 都是一种 I/O 复用的机制。它们都是通过一种机制(其实也就是轮训监听的描述符)来监视多个描述符，一旦某个描述符就绪了，就能通知程序进行相应的读写操作.Python中也提供了对应的模块实现改功能&lt;strong&gt;select&lt;/strong&gt;!&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;select&lt;/strong&gt; 模块实现了上述的三个I/O复用机制,我们来看一下select定义.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt; def select(rlist, wlist, xlist, timeout=None):
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这三个参数都是一个数组，数组中的内容均为一个文件描述符(file descriptor)对象或者一个拥有返回文件描述符方法&lt;code&gt;fileno()&lt;/code&gt;的对象.&lt;/p&gt;
@@ -391,45 +391,16 @@ readables number:  11
 &lt;p&gt;poll本质上和select没有区别，只是没有了最大连接数(linux上默认1024个)的限制，原因是它基于链表存储的。&lt;/p&gt;
 &lt;h4 id=&#34;python中的poll&#34;&gt;python中的poll&lt;/h4&gt;
 &lt;p&gt;&lt;code&gt;select.poll()&lt;/code&gt;: 返回一个poll对象,并支持&lt;code&gt;sizehint&lt;/code&gt;参数来优化内部数据结构,该对象支持一下方法.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;eventmask&lt;/strong&gt;表示一个可选的掩码位,用于描述要检查的事件类型,其值是一下的集合：&lt;/p&gt;
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th&gt;名称&lt;/th&gt;
-&lt;th&gt;含义&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td&gt;POLLIN&lt;/td&gt;
-&lt;td&gt;有数据读&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;POLLPRI&lt;/td&gt;
-&lt;td&gt;有数据紧急读&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;POLLOUT&lt;/td&gt;
-&lt;td&gt;数据输出，并且不会阻塞&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;POLLERR&lt;/td&gt;
-&lt;td&gt;某种错误情况&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;POLLHUP&lt;/td&gt;
-&lt;td&gt;挂起T&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;POLLRDHUP&lt;/td&gt;
-&lt;td&gt;准备关闭流socket或等待另外一半连接关闭&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;POLLNVAL&lt;/td&gt;
-&lt;td&gt;无效的请求：描述符未打开&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
+&lt;p&gt;&lt;strong&gt;eventmask&lt;/strong&gt;表示一个可选的掩码位,用于描述要检查的事件类型,其值是一下的集合：
+|   名称    |                  含义                  |
+| :&amp;mdash;&amp;mdash;-: | :&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;: |
+|  POLLIN   |                有数据读                |
+|  POLLPRI  |              有数据紧急读              |
+|  POLLOUT  |         数据输出，并且不会阻塞         |
+|  POLLERR  |              某种错误情况              |
+|  POLLHUP  |                 挂起T                  |
+| POLLRDHUP | 准备关闭流socket或等待另外一半连接关闭 |
+| POLLNVAL  |        无效的请求：描述符未打开        |&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;register(self, fd, eventmask=None)&lt;/code&gt;:  向poll对象中注册一个文件描述符,如果已经存在则抛出一个OS Error.&lt;/li&gt;
 &lt;li&gt;&lt;code&gt;unregister(self, fd)&lt;/code&gt;:  从poll对象中删除已经注册的描述符&lt;/li&gt;
@@ -507,65 +478,21 @@ def server():
 &lt;li&gt;flags： 这个参数已弃用，在python3.4之后就直接使用&lt;strong&gt;select.EPOLL_CLOEXEC&lt;/strong&gt;,不用管.&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;并且在3.4之后支持和&lt;code&gt;with&lt;/code&gt;语句一起协同工作.&lt;/p&gt;
-&lt;p&gt;epoll中的事件:&lt;/p&gt;
-&lt;table&gt;
-&lt;thead&gt;
-&lt;tr&gt;
-&lt;th&gt;名称&lt;/th&gt;
-&lt;th&gt;含义&lt;/th&gt;
-&lt;/tr&gt;
-&lt;/thead&gt;
-&lt;tbody&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLIN&lt;/td&gt;
-&lt;td&gt;读就绪&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLOUT&lt;/td&gt;
-&lt;td&gt;写就绪&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLPRI&lt;/td&gt;
-&lt;td&gt;有数据紧急读&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLERR&lt;/td&gt;
-&lt;td&gt;assoc,fd 上发生错误&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLHUP&lt;/td&gt;
-&lt;td&gt;assoc,fd 上发生挂起&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLET&lt;/td&gt;
-&lt;td&gt;设置边沿触发，默认是水平触发&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLRDHUP&lt;/td&gt;
-&lt;td&gt;准备关闭流socket或等待另外一半连接关闭&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLRDNORM&lt;/td&gt;
-&lt;td&gt;和EPOLLIN一样&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLRDBAND&lt;/td&gt;
-&lt;td&gt;可以读取高优先级数据&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLWRNORM&lt;/td&gt;
-&lt;td&gt;和EPOLLOUT一样&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLWRNORM&lt;/td&gt;
-&lt;td&gt;可以写取高优先级数据&lt;/td&gt;
-&lt;/tr&gt;
-&lt;tr&gt;
-&lt;td&gt;EPOLLMSG&lt;/td&gt;
-&lt;td&gt;忽略&lt;/td&gt;
-&lt;/tr&gt;
-&lt;/tbody&gt;
-&lt;/table&gt;
+&lt;p&gt;epoll中的事件:
+|    名称     |                  含义                  |
+| :&amp;mdash;&amp;mdash;&amp;mdash;: | :&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;: |
+|   EPOLLIN   |                 读就绪                 |
+|  EPOLLOUT   |                 写就绪                 |
+|  EPOLLPRI   |              有数据紧急读              |
+|  EPOLLERR   |          assoc,fd 上发生错误           |
+|  EPOLLHUP   |          assoc,fd 上发生挂起           |
+|   EPOLLET   |      设置边沿触发，默认是水平触发      |
+| EPOLLRDHUP  | 准备关闭流socket或等待另外一半连接关闭 |
+| EPOLLRDNORM |             和EPOLLIN一样              |
+| EPOLLRDBAND |          可以读取高优先级数据          |
+| EPOLLWRNORM |             和EPOLLOUT一样             |
+| EPOLLWRNORM |          可以写取高优先级数据          |
+|  EPOLLMSG   |                  忽略                  |&lt;/p&gt;
 &lt;p&gt;epoll中提供了一下方法:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;&lt;code&gt;register(self, fd, eventmask=None)&lt;/code&gt; 向epoll中注册一个fd,如果已经存在就会包OS Error.&lt;/li&gt;
@@ -579,6 +506,7 @@ def server():
 &lt;pre&gt;&lt;code&gt;import select,socket,json,time
 
 l_addr=(&#39;127.0.0.1&#39;,8000)
+
 
 def server():
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -640,10 +568,10 @@ def server():
 &lt;p&gt;事件驱动的缺点在于这里没有涉及真正的并发.如果一个事件的处理方法阻塞了或者执行了一个较长的耗时计算(也就是我们在列子中指定的&lt;code&gt;sleep&lt;/code&gt;函数),那么之后所有的处理请求过程都会阻塞.&lt;/p&gt;
 &lt;p&gt;代码地址：&lt;a href=&#34;https://github.com/busyboy-ws/my_code/tree/master/python/io_event&#34;&gt;https://github.com/busyboy-ws/my_code/tree/master/python/io_event&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
-&lt;p&gt;&lt;a href=&#34;https://www.runoob.com/http/http-messages.html&#34;&gt;HTTP消息结构&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://www.jianshu.com/p/abfb47d36fba&#34;&gt;Linux下I/O多路复用select, poll, epoll 三种模型的Python使用&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;http://scotdoyle.com/python-epoll-howto.html&#34;&gt;How To Use Linux epoll with Python&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://docs.python.org/3/library/select.html#poll-objects&#34;&gt;select — Waiting for I/O completion&lt;/a&gt;&lt;/p&gt;</description>
+&lt;p&gt;&lt;a href=&#34;https://www.runoob.com/http/http-messages.html&#34;&gt;HTTP消息结构&lt;/a&gt;
+&lt;a href=&#34;https://www.jianshu.com/p/abfb47d36fba&#34;&gt;Linux下I/O多路复用select, poll, epoll 三种模型的Python使用&lt;/a&gt;
+&lt;a href=&#34;http://scotdoyle.com/python-epoll-howto.html&#34;&gt;How To Use Linux epoll with Python&lt;/a&gt;
+&lt;a href=&#34;https://docs.python.org/3/library/select.html#poll-objects&#34;&gt;select — Waiting for I/O completion&lt;/a&gt;&lt;/p&gt;</description>
       
     </item>
     
