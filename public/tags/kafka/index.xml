@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>kafka on 小松松的个人博客，记录学习和生活的点点滴滴！</title>
+    <link>/tags/kafka/</link>
+    <description>Recent content in kafka on 小松松的个人博客，记录学习和生活的点点滴滴！</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <copyright>小松松</copyright>
+    <lastBuildDate>Thu, 30 Apr 2020 16:01:23 +0800</lastBuildDate>
+    
+	<atom:link href="/tags/kafka/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>k8s集群上部署kafka集群</title>
+      <link>/post/kafka-deploy-on-k8s/</link>
+      <pubDate>Thu, 30 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/kafka-deploy-on-k8s/</guid>
+      <description>前言 公司需要一套kafka集群来采集各个区域的用户行为日志,目前香港集群已经部署完成,还需要在东南亚和北美各创建一个kafka集群并将数据同</description>
+    </item>
+    
+  </channel>
+</rss>
