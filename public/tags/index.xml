@@ -7,10 +7,46 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>小松松</copyright>
-    <lastBuildDate>Thu, 09 Apr 2020 16:01:23 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 06 May 2020 16:01:23 +0800</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>kafka</title>
+      <link>/tags/kafka/</link>
+      <pubDate>Wed, 06 May 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/tags/kafka/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>kubernetes</title>
+      <link>/tags/kubernetes/</link>
+      <pubDate>Wed, 06 May 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/tags/kubernetes/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>python</title>
+      <link>/tags/python/</link>
+      <pubDate>Sat, 11 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/tags/python/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>socket</title>
+      <link>/tags/socket/</link>
+      <pubDate>Sat, 11 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/tags/socket/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>C</title>
@@ -27,15 +63,6 @@
       <pubDate>Thu, 09 Apr 2020 16:01:23 +0800</pubDate>
       
       <guid>/tags/go/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>python</title>
-      <link>/tags/python/</link>
-      <pubDate>Thu, 09 Apr 2020 16:01:23 +0800</pubDate>
-      
-      <guid>/tags/python/</guid>
       <description></description>
     </item>
     

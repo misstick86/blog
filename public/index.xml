@@ -43,6 +43,212 @@
     </item>
     
     <item>
+      <title>k8s集群上部署kafka集群</title>
+      <link>/post/kafka%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/</link>
+      <pubDate>Wed, 06 May 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/kafka%E9%83%A8%E7%BD%B2%E6%96%87%E6%A1%A3/</guid>
+      
+        <description>&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
+&lt;p&gt;公司需要一套kafka集群来采集各个区域的用户行为日志,目前香港集群已经部署完成,还需要在东南亚和北美各创建一个kafka集群并将数据同步到香港的kafka集群中. kafak的集群部署在kubernets中,采用helm部署方式,集群之间的数据同步使用的是kafka官方给的解决方案&lt;strong&gt;mirrormaker&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;安装kafka集群&#34;&gt;安装kafka集群&lt;/h3&gt;
+&lt;p&gt;kafka集群的安装已经收纳到helm官网,首先我们要添加一个&lt;code&gt;incubator&lt;/code&gt;的仓库地址，因为 stable 的仓库里面并没有合适的 Kafka 的 Chart 包：&lt;/p&gt;
+&lt;p&gt;helm官方kafak地址如下: &lt;a href=&#34;https://github.com/helm/charts/tree/master/incubator/kafka&#34;&gt;https://github.com/helm/charts/tree/master/incubator/kafka&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ helm repo add incubator http://mirror.azure.cn/kubernetes/charts-incubator/
+$ helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the &amp;quot;incubator&amp;quot; chart repository
+...Successfully got an update from the &amp;quot;stable&amp;quot; chart repository
+Update Complete. ⎈ Happy Helming!⎈
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用helm安装就非常的简单了,比如:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;helm install --name my-kafka incubator/kafka
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;当然默认的安装不适合我们实际的需求,我们需要编写自己的&lt;strong&gt;values.yaml&lt;/strong&gt;文件.kafka的后端需要存储空间,阿里云本省也提供了很多可以使用的存储插件,我们这里使用的是NAS,由于需要做&lt;strong&gt;mirrormaker&lt;/strong&gt;,我们需要将kafka集群暴露在公网.最后使用的&lt;strong&gt;values.yaml&lt;/strong&gt;文件如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;external:
+  enabled: true
+  type: LoadBalancer
+  distinct: true
+  dommain: bnstat.com
+
+configurationOverrides:
+  &amp;quot;advertised.listeners&amp;quot;: |-
+    EXTERNAL://kafka-$((${KAFKA_BROKER_ID})).example.com:19092
+  &amp;quot;listener.security.protocol.map&amp;quot;: |-
+    PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+
+persistence:
+  size: &amp;quot;10Gi&amp;quot;
+  storageClass: alicloud-nas
+livenessProbe:
+  initialDelaySeconds: 120
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;&lt;strong&gt;这里说一下我遇到的问题.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;kafka默认会为我们在底层的云环境创建三个LB,但这些都是内网的(阿里云中).一开始我认为在LB中绑定对应的外网IP不就可以把服务暴露出来了,但事情并没有这么简单. 这是由于kafak中的配置文件两个字段所定义的&lt;strong&gt;listeners&lt;/strong&gt;,&lt;strong&gt;advertised.listeners&lt;/strong&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;listeners: 一般用于内网通信,如果不准备把kafka暴露在公网只需要配置这个参数&lt;/li&gt;
+&lt;li&gt;advertised.listeners: 用于配置外网,会将此地址配置在zookeeper中(这里有一个坑)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;关于这两个字段可以参考文档:&lt;a href=&#34;https://segmentfault.com/a/1190000020715650&#34;&gt;https://segmentfault.com/a/1190000020715650&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在使用helm部署时,我对&lt;strong&gt;values.yaml&lt;/strong&gt;的更改一直使用的是&lt;strong&gt;helm upgrade&lt;/strong&gt;的方式,但当你修改pod中的环境变量内容时并不会触发pod更新,你需要手动更新. 而且由于&lt;strong&gt;advertised.listeners&lt;/strong&gt;会向zookeeper中写入,修改&lt;strong&gt;value.yaml&lt;/strong&gt;并不会更改zookeeper中的&lt;strong&gt;advertised.listeners&lt;/strong&gt;数据,这一度困扰了我很久.&lt;/p&gt;
+&lt;p&gt;在使用&lt;strong&gt;external&lt;/strong&gt;字段时,建议在配置的&lt;strong&gt;advertised.listeners&lt;/strong&gt;采用域名的方式,即使kafka对外的LB发生改变也只需要改解析就可以了,对于业务没有影响.&lt;/p&gt;
+&lt;p&gt;最后: helm安装时直接指定&lt;strong&gt;values.yaml&lt;/strong&gt;文件既可以.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;helm install my-kafka -f values.yaml incubator/kafka
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;通过内部连接kafak集群就非常简单了,使用如下的配置创建一个pod.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apiVersion: v1
+kind: Pod
+metadata:
+  name: testclient
+  namespace: kafka
+spec:
+  containers:
+  - name: kafka
+    image: solsson/kafka:0.11.0.0
+    command:
+      - sh
+      - -c
+      - &amp;quot;exec tail -f /dev/null&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用如下的配置列出kafka的所有的topic:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;kubectl -n kafka exec -ti testclient -- ./bin/kafka-topics.sh --zookeeper my-release-zookeeper:2181 --list
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;mirrormaker镜像同步&#34;&gt;mirrormaker镜像同步&lt;/h3&gt;
+&lt;p&gt;MirrorMaker是Kafka附带的一个用于在Kafka集群之间制作镜像数据的工具。该工具从源集群中消费并生产到目标群集。这种镜像的常见用例是在另一个数据中心提供副本。&lt;/p&gt;
+&lt;p&gt;关于mirrormaker制作成Docker镜像的方法网上也有很多,这里我使用的&lt;a href=&#34;https://github.com/srotya/docker-kafka-mirror-maker&#34;&gt;https://github.com/srotya/docker-kafka-mirror-maker&lt;/a&gt;的构建方法,但是由于时间比较长久所以还是自己修改了一部分.修改后的Dockerfile如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;FROM nimmis/java-centos:oracle-8-jre
+MAINTAINER Ambud Sharma
+
+ENV WHITELIST *
+ENV DESTINATION &amp;quot;localhost:6667&amp;quot;
+ENV SOURCE &amp;quot;localhost:6667&amp;quot;
+ENV SECURITY &amp;quot;PLAINTEXT&amp;quot;
+ENV GROUPID &amp;quot;_mirror_maker&amp;quot;
+ENV PRINCIPAL &amp;quot;kafka/localhost@EXAMPLE.COM&amp;quot;
+ENV KEYTAB_FILENAME &amp;quot;mirror.keytab&amp;quot;
+
+RUN mkdir -p /usr/local/kafka_2.12-2.0.1
+COPY kafka_2.12-2.0.1 /usr/local/kafka_2.12-2.0.1
+RUN yum -y install gettext
+RUN mkdir -p /etc/mirror-maker/
+RUN mkdir /etc/security/keytabs/
+ADD ./consumer.config /tmp/mirror-maker/
+ADD ./producer.config /tmp/mirror-maker/
+ADD ./kafka_jaas.conf /tmp/mirror-maker/
+ADD ./run.sh /etc/mirror-maker/
+RUN chmod +x /etc/mirror-maker/run.sh
+
+CMD /etc/mirror-maker/run.sh
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;此镜像已经上传到Dockerhub中,地址:&lt;a href=&#34;https://hub.docker.com/r/uxiaosongsong/mirror-maker&#34;&gt;https://hub.docker.com/r/uxiaosongsong/mirror-maker&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;以上的坏境变量也非常的简单,简单介绍一下:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;WHITELIST&lt;/strong&gt;: 要镜像同步的topic,支持正则表达式&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DESTINATION&lt;/strong&gt;: 要同步的目表kafka集群地址&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;SOURCE&lt;/strong&gt;: 提供同步kafka集群的数据的地址&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;之后再使用一个deploy部署起来就可以了,当然如果你需要同步多个就对应的创建多个deploy就行了.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+ name: mirror-maker
+ namespace: xxxxx-public
+spec:
+ replicas: 1
+ template:
+   metadata:
+     labels:
+       name: mirror-maker
+   spec:
+     containers:
+     - name: mirror-maker
+       image: uxiaosongsong/mirror-maker:v1
+       imagePullPolicy: IfNotPresent
+       env:
+       - name: &amp;quot;WHITELIST&amp;quot;
+         value: &amp;quot;ops_test&amp;quot;
+       - name: &amp;quot;DESTINATION&amp;quot;
+         value: &amp;quot;data-kafka-headless:9092&amp;quot;
+       - name: &amp;quot;SOURCE&amp;quot;
+         value: &amp;quot;kafka-0.example.com:19092&amp;quot;
+     nodeSelector:
+       tuiwen-tech.com/phase: data
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;之后便可以在马来集群进行生产数据,硅谷集群消费数据就可以了,如下:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;马来生产&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;admin@iZ8psdykrxdgcybevaw3wzZ:~$ kubectl -n tuiwen-public exec -ti testclient -- kafka-console-producer --broker-list data-kafka-headless:9092 --topic ops_test
+&amp;gt;jijoa
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;硅谷消费&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;➜  kafka git:(master) ✗ kubectl -n tuiwen-public exec -ti testclient -- kafka-console-consumer --bootstrap-server data-kafka:9092 --topic ops_test --from-beginning
+jijoa
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;同步延迟验证&#34;&gt;同步延迟验证&lt;/h3&gt;
+&lt;p&gt;kafka集群的同步默认走的还是公网,安全性是通过限制ip的访问控制方式来实现的,监测两个集群数据同步的延迟也是一个必要的工作,目前采取的方式为马来生产一个时间数据,硅谷消费掉这个时间数据并和自己生成的时间做差值：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;生产者代码&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# __author__ = &amp;quot;busyboy&amp;quot;
+# Date: 4/28/20
+
+import time
+from kafka import KafkaProducer
+
+
+def gen_time():
+    current_time = str(round(time.time() * 1000))
+    return current_time.encode(&amp;quot;utf8&amp;quot;)
+
+def func():
+    i = 0
+    while True:
+        current_time = gen_time()
+        producer = KafkaProducer(bootstrap_servers=[&#39;kafka-2.example.com:19092&#39;,&#39;kafka-1.example.com:19092&#39;,&#39;kafka-0.example.com:19092&#39;])
+        future = producer.send(&#39;ops_test&#39;,value=current_time, partition= 0)
+        result = future.get(timeout= 10)
+        print(result)
+        time.sleep(5)
+
+
+if __name__ == &#39;__main__&#39;:
+    func()
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;消费者代码&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# __author__ = &amp;quot;busyboy&amp;quot;
+# Date: 4/28/20
+
+import time
+from kafka import KafkaConsumer
+
+
+consumer = KafkaConsumer(&#39;ops_test&#39;, bootstrap_servers=[&#39;kafka-2.bnstat.com:19092&#39;,&#39;kafka-1.bnstat.com:19092&#39;,&#39;kafka-0.bnstat.com:19092&#39;])
+for msg in consumer:
+    print(&#39;time is:%d ms&#39; % (int(round(time.time() * 1000)) - int(msg.value.decode(&amp;quot;utf8&amp;quot;))))
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在消费端消费数据验证延迟.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;(.venv) admin@jump-server:~/python$ python kafka-consumer.py
+time is:1774 ms
+time is:2280 ms
+time is:1940 ms
+time is:209 ms
+time is:210 ms
+time is:214 ms
+time is:233 ms
+time is:211 ms
+...
+time is:219 ms
+time is:214 ms
+time is:212 ms
+time is:211 ms
+time is:469 ms
+time is:398 ms
+time is:209 ms
+time is:209 ms
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;总体来看两端的延迟还是比较理想的在300毫秒以内,后续还可以改造代码将监控的数据放在prometheus中并实施监控起来.&lt;/p&gt;
+</description>
+      
+    </item>
+    
+    <item>
       <title>从socket看事件驱动</title>
       <link>/post/socket-for-ioevent/</link>
       <pubDate>Sat, 11 Apr 2020 16:01:23 +0800</pubDate>
@@ -130,7 +336,6 @@ def serve():
     outputs=[]
     s.setblocking(True)
     while True:
-
         r,w,e=select.select(inputs,outputs,inputs)
         print(&amp;quot;readables number: &amp;quot;, len(inputs))  #注释2
         for obj in r:
@@ -138,7 +343,6 @@ def serve():
                 conn,addr=obj.accept()
                 conn.setblocking(0)
                 inputs.append(conn)
-
             else:
                 data_recv = obj.recv(1024)
                 if not data_recv:
@@ -149,7 +353,6 @@ def serve():
                 if data_recv:
                     if obj not in outputs:
                         outputs.append(obj)
-
         for obj in w:
             # print(&#39;deal socket...&#39;) # 注释1
             time.sleep(5)
@@ -162,7 +365,6 @@ def serve():
             if obj in outputs:
                 outputs.remove(obj)
             obj.close()
-
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;对于上面的注释我在这里解释一下,前面说过select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写.所以说当它在负责读写的时候由于我们&lt;code&gt;sleep 5&lt;/code&gt;秒钟，那么所有的socket处理数据都会阻塞掉，在当我停止&lt;code&gt;ab&lt;/code&gt;压测时，由于当前的socket连接已经关闭，所以在&lt;strong&gt;注释1&lt;/strong&gt;处就会出现报错.&lt;strong&gt;注释2&lt;/strong&gt;是采用另一种方式验证,即统计当前就绪读状态下的&lt;strong&gt;socket&lt;/strong&gt;的数量.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;listen: http://127.0.0.1:8000
 readables number:  1
@@ -253,7 +455,6 @@ def server():
         while True:
             for fd, event in my_poll.poll():
                 if event == select.POLLIN:
-
                     if fd == s.fileno():
                         conn,addr = s.accept()
                         conn.setblocking(False)
@@ -278,7 +479,7 @@ def server():
     finally:
         print(123)
         s.close()
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;同样的道理我们无法在请求处理过程中看到并发的效果(也就是&lt;code&gt;select.POLLOUT&lt;/code&gt;事件下),可以在&lt;code&gt;POLLIN&lt;/code&gt;模式下通过简单的打印来看并发的请求.&lt;/p&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;同样的道理我们无法在请求处理过程中看到并发的效果(也就是&lt;code&gt;select.POLLOUT&lt;/code&gt;事件下),可以在&lt;code&gt;POLLIN&lt;/code&gt;事件中通过简单的打印来看并发的请求.&lt;/p&gt;
 &lt;p&gt;当我们指定高并发时，比如100个,可以看到快速的&lt;code&gt;print&lt;/code&gt;出数据来.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;ab -c 100 -n 1000 http://localhost:8000/
 &lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;io事件epoll&#34;&gt;io事件epoll&lt;/h2&gt;
@@ -437,6 +638,7 @@ def server():
 &lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
 &lt;p&gt;事件驱动I/O的一个潜在的优势在于它可以在不使用多线程或者多进程的情况下同时处理大量的连接.也就是说,&lt;code&gt;select()&lt;/code&gt;可以来监视成千上百个socket,并且对他们中间发送的事件做出响应.&lt;/p&gt;
 &lt;p&gt;事件驱动的缺点在于这里没有涉及真正的并发.如果一个事件的处理方法阻塞了或者执行了一个较长的耗时计算(也就是我们在列子中指定的&lt;code&gt;sleep&lt;/code&gt;函数),那么之后所有的处理请求过程都会阻塞.&lt;/p&gt;
+&lt;p&gt;代码地址：&lt;a href=&#34;https://github.com/busyboy-ws/my_code/tree/master/python/io_event&#34;&gt;https://github.com/busyboy-ws/my_code/tree/master/python/io_event&lt;/a&gt;&lt;/p&gt;
 &lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.runoob.com/http/http-messages.html&#34;&gt;HTTP消息结构&lt;/a&gt;&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;https://www.jianshu.com/p/abfb47d36fba&#34;&gt;Linux下I/O多路复用select, poll, epoll 三种模型的Python使用&lt;/a&gt;&lt;/p&gt;

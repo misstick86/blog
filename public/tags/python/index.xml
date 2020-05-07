@@ -7,7 +7,7 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>小松松</copyright>
-    <lastBuildDate>Thu, 09 Apr 2020 16:01:23 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 11 Apr 2020 16:01:23 +0800</lastBuildDate>
     
 	<atom:link href="/tags/python/index.xml" rel="self" type="application/rss+xml" />
     
@@ -19,6 +19,21 @@
       
       <guid>/post/leetcode/</guid>
       <description>Introduction 对于技术人来说，算法,数据结构是和别人区分开的一个实质性体现，闲来无事的时候刷一刷,增加自己的技能是非常必要的. 欢迎start和关注，一起</description>
+    </item>
+    
+    <item>
+      <title>从socket看事件驱动</title>
+      <link>/post/socket-for-ioevent/</link>
+      <pubDate>Sat, 11 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/socket-for-ioevent/</guid>
+      <description>&lt;h2 id=&#34;前言&#34;&gt;前言&lt;/h2&gt;
+&lt;p&gt;最近一段时间在看werkzegu的源码，也就顺手自己实现了一个类似werkzuge的功能代码，但写完后用&lt;code&gt;ab&lt;/code&gt;压测发现不能支持并发，每个请求都是串行的，这也就引起了我极大的疑惑，顾来写这边文章记录一下. 以下是疑虑的问题所在:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;为什么使用&lt;code&gt;ab&lt;/code&gt;压测&lt;strong&gt;werkzuge&lt;/strong&gt;可以实现并发处理http请求(注：不是真正的并发，只是在请求上)，底层用了什么技术.(io事件驱动)&lt;/li&gt;
+&lt;li&gt;io事件驱动和多线程和多进程有什么关系呢？(也考虑过和协程的关系)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;带着这样的问题，我做了以下的代码编写.&lt;/p&gt;</description>
     </item>
     
     <item>
