@@ -1,7 +1,7 @@
 ---
 title: "k8s集群上部署kafka集群"
 date: 2020-05-06T16:01:23+08:00
-lastmod: 2019-05-07T16:01:23+08:00
+lastmod: 2020-05-07T16:01:23+08:00
 draft: false
 tags: ["kubernetes", "kafka"]
 categories: ["运维"]
