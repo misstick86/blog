@@ -43,6 +43,545 @@
     </item>
     
     <item>
+      <title>k8s集群上部署kafka集群</title>
+      <link>/post/kafka-deploy-on-k8s/</link>
+      <pubDate>Thu, 30 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/kafka-deploy-on-k8s/</guid>
+      
+        <description>&lt;h4 id=&#34;前言&#34;&gt;前言&lt;/h4&gt;
+&lt;p&gt;公司需要一套kafka集群来采集各个区域的用户行为日志,目前香港集群已经部署完成,还需要在东南亚和北美各创建一个kafka集群并将数据同步到香港的kafka集群中. kafak的集群部署在kubernets中,采用helm部署方式,集群之间的数据同步使用的是kafka官方给的解决方案&lt;strong&gt;mirrormaker&lt;/strong&gt;.&lt;/p&gt;
+&lt;h4 id=&#34;安装kafka集群&#34;&gt;安装kafka集群&lt;/h4&gt;
+&lt;p&gt;kafka集群的安装已经收纳到helm官网,首先我们要添加一个&lt;code&gt;incubator&lt;/code&gt;的仓库地址，因为 stable 的仓库里面并没有合适的 Kafka 的 Chart 包：&lt;/p&gt;
+&lt;p&gt;helm官方kafak地址如下: &lt;a href=&#34;https://github.com/helm/charts/tree/master/incubator/kafka&#34;&gt;https://github.com/helm/charts/tree/master/incubator/kafka&lt;/a&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;$ helm repo add incubator http://mirror.azure.cn/kubernetes/charts-incubator/
+$ helm repo update
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the &amp;quot;incubator&amp;quot; chart repository
+...Successfully got an update from the &amp;quot;stable&amp;quot; chart repository
+Update Complete. ⎈ Happy Helming!⎈
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用helm安装就非常的简单了,比如:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;helm install --name my-kafka incubator/kafka
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;当然默认的安装不适合我们实际的需求,我们需要编写自己的&lt;strong&gt;values.yaml&lt;/strong&gt;文件.kafka的后端需要存储空间,阿里云本省也提供了很多可以使用的存储插件,我们这里使用的是NAS,由于需要做&lt;strong&gt;mirrormaker&lt;/strong&gt;,我们需要将kafka集群暴露在公网.最后使用的&lt;strong&gt;values.yaml&lt;/strong&gt;文件如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;external:
+  enabled: true
+  type: LoadBalancer
+  distinct: true
+  dommain: bnstat.com
+
+configurationOverrides:
+  &amp;quot;advertised.listeners&amp;quot;: |-
+    EXTERNAL://kafka-$((${KAFKA_BROKER_ID})).example.com:19092
+  &amp;quot;listener.security.protocol.map&amp;quot;: |-
+    PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+
+persistence:
+  size: &amp;quot;10Gi&amp;quot;
+  storageClass: alicloud-nas
+livenessProbe:
+  initialDelaySeconds: 120
+&lt;/code&gt;&lt;/pre&gt;&lt;blockquote&gt;
+&lt;p&gt;这里说一下我遇到的问题.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;kafka默认会为我们在底层的云环境创建三个LB,但这些都是内网的(阿里云中).一开始我认为在LB中绑定对应的外网IP不就可以把服务暴露出来了,但事情并没有这么简单. 这是由于kafak中的配置文件两个字段所定义的&lt;strong&gt;listeners&lt;/strong&gt;,&lt;strong&gt;advertised.listeners&lt;/strong&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;listeners: 一般用于内网通信,如果不准备把kafka暴露在公网只需要配置这个参数&lt;/li&gt;
+&lt;li&gt;advertised.listeners: 用于配置外网,会将此地址配置在zookeeper中(这里有一个坑)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;关于这两个字段可以参考文档:&lt;a href=&#34;https://segmentfault.com/a/1190000020715650&#34;&gt;https://segmentfault.com/a/1190000020715650&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;在使用helm部署时,我对&lt;strong&gt;values.yaml&lt;/strong&gt;的更改一直使用的是&lt;strong&gt;helm upgrade&lt;/strong&gt;的方式,但当你修改pod中的环境变量内容时并不会触发pod更新,你需要手动更新. 而且由于&lt;strong&gt;advertised.listeners&lt;/strong&gt;会向zookeeper中写入,修改&lt;strong&gt;value.yaml&lt;/strong&gt;并不会更改zookeeper中的&lt;strong&gt;advertised.listeners&lt;/strong&gt;数据,这一度困扰了我很久.&lt;/p&gt;
+&lt;p&gt;在使用&lt;strong&gt;external&lt;/strong&gt;字段时,建议在配置的&lt;strong&gt;advertised.listeners&lt;/strong&gt;采用域名的方式,即使kafka对外的LB发生改变也只需要改解析就可以了,对于业务没有影响.&lt;/p&gt;
+&lt;p&gt;最后: helm安装时直接指定&lt;strong&gt;values.yaml&lt;/strong&gt;文件既可以.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;helm install my-kafka -f values.yaml incubator/kafka
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;通过内部连接kafak集群就非常简单了,使用如下的配置创建一个pod.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apiVersion: v1
+kind: Pod
+metadata:
+  name: testclient
+  namespace: kafka
+spec:
+  containers:
+  - name: kafka
+    image: solsson/kafka:0.11.0.0
+    command:
+      - sh
+      - -c
+      - &amp;quot;exec tail -f /dev/null&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用如下的配置列出kafka的所有的topic:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;kubectl -n kafka exec -ti testclient -- ./bin/kafka-topics.sh --zookeeper my-release-zookeeper:2181 --list
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;mirrormaker镜像同步&#34;&gt;mirrormaker镜像同步&lt;/h4&gt;
+&lt;p&gt;MirrorMaker是Kafka附带的一个用于在Kafka集群之间制作镜像数据的工具。该工具从源集群中消费并生产到目标群集。这种镜像的常见用例是在另一个数据中心提供副本。&lt;/p&gt;
+&lt;p&gt;关于mirrormaker制作成Docker镜像的方法网上也有很多,这里我使用的&lt;a href=&#34;https://github.com/srotya/docker-kafka-mirror-maker&#34;&gt;https://github.com/srotya/docker-kafka-mirror-maker&lt;/a&gt;的构建方法,但是由于时间比较长久所以还是自己修改了一部分.修改后的Dockerfile如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;FROM nimmis/java-centos:oracle-8-jre
+MAINTAINER Ambud Sharma
+
+ENV WHITELIST *
+ENV DESTINATION &amp;quot;localhost:6667&amp;quot;
+ENV SOURCE &amp;quot;localhost:6667&amp;quot;
+ENV SECURITY &amp;quot;PLAINTEXT&amp;quot;
+ENV GROUPID &amp;quot;_mirror_maker&amp;quot;
+ENV PRINCIPAL &amp;quot;kafka/localhost@EXAMPLE.COM&amp;quot;
+ENV KEYTAB_FILENAME &amp;quot;mirror.keytab&amp;quot;
+
+RUN mkdir -p /usr/local/kafka_2.12-2.0.1
+COPY kafka_2.12-2.0.1 /usr/local/kafka_2.12-2.0.1
+RUN yum -y install gettext
+RUN mkdir -p /etc/mirror-maker/
+RUN mkdir /etc/security/keytabs/
+ADD ./consumer.config /tmp/mirror-maker/
+ADD ./producer.config /tmp/mirror-maker/
+ADD ./kafka_jaas.conf /tmp/mirror-maker/
+ADD ./run.sh /etc/mirror-maker/
+RUN chmod +x /etc/mirror-maker/run.sh
+
+CMD /etc/mirror-maker/run.sh
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;此镜像已经上传到Dockerhub中,地址:&lt;a href=&#34;https://hub.docker.com/r/uxiaosongsong/mirror-maker&#34;&gt;https://hub.docker.com/r/uxiaosongsong/mirror-maker&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;以上的坏境变量也非常的简单,简单介绍一下:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;WHITELIST&lt;/strong&gt;: 要镜像同步的topic,支持正则表达式&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;DESTINATION&lt;/strong&gt;: 要同步的目表kafka集群地址&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;SOURCE&lt;/strong&gt;: 提供同步kafka集群的数据的地址&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;之后再使用一个deploy部署起来就可以了,当然如果你需要同步多个就对应的创建多个deploy就行了.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+ name: mirror-maker
+ namespace: xxxxx-public
+spec:
+ replicas: 1
+ template:
+   metadata:
+     labels:
+       name: mirror-maker
+   spec:
+     containers:
+     - name: mirror-maker
+       image: uxiaosongsong/mirror-maker:v1
+       imagePullPolicy: IfNotPresent
+       env:
+       - name: &amp;quot;WHITELIST&amp;quot;
+         value: &amp;quot;ops_test&amp;quot;
+       - name: &amp;quot;DESTINATION&amp;quot;
+         value: &amp;quot;data-kafka-headless:9092&amp;quot;
+       - name: &amp;quot;SOURCE&amp;quot;
+         value: &amp;quot;kafka-0.example.com:19092&amp;quot;
+     nodeSelector:
+       tuiwen-tech.com/phase: data
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;之后便可以在马来集群进行生产数据,硅谷集群消费数据就可以了,如下:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;马来生产&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;admin@iZ8psdykrxdgcybevaw3wzZ:~$ kubectl -n tuiwen-public exec -ti testclient -- kafka-console-producer --broker-list data-kafka-headless:9092 --topic ops_test
+&amp;gt;jijoa
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;硅谷消费&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;➜  kafka git:(master) ✗ kubectl -n tuiwen-public exec -ti testclient -- kafka-console-consumer --bootstrap-server data-kafka:9092 --topic ops_test --from-beginning
+jijoa
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;同步延迟验证&#34;&gt;同步延迟验证&lt;/h4&gt;
+&lt;p&gt;kafka集群的同步默认走的还是公网,安全性是通过限制ip的访问控制方式来实现的,监测两个集群数据同步的延迟也是一个必要的工作,目前采取的方式为马来生产一个时间数据,硅谷消费掉这个时间数据并和自己生成的时间做差值：&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;生产者代码&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# __author__ = &amp;quot;busyboy&amp;quot;
+# Date: 4/28/20
+
+import time
+from kafka import KafkaProducer
+
+
+def gen_time():
+    current_time = str(round(time.time() * 1000))
+    return current_time.encode(&amp;quot;utf8&amp;quot;)
+
+def func():
+    i = 0
+    while True:
+        current_time = gen_time()
+        producer = KafkaProducer(bootstrap_servers=[&#39;kafka-2.example.com:19092&#39;,&#39;kafka-1.example.com:19092&#39;,&#39;kafka-0.example.com:19092&#39;])
+        future = producer.send(&#39;ops_test&#39;,value=current_time, partition= 0)
+        result = future.get(timeout= 10)
+        print(result)
+        time.sleep(5)
+
+
+if __name__ == &#39;__main__&#39;:
+    func()
+&lt;/code&gt;&lt;/pre&gt;&lt;ol start=&#34;2&#34;&gt;
+&lt;li&gt;消费者代码&lt;/li&gt;
+&lt;/ol&gt;
+&lt;pre&gt;&lt;code&gt;#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+# __author__ = &amp;quot;busyboy&amp;quot;
+# Date: 4/28/20
+
+import time
+from kafka import KafkaConsumer
+
+
+consumer = KafkaConsumer(&#39;ops_test&#39;, bootstrap_servers=[&#39;kafka-2.bnstat.com:19092&#39;,&#39;kafka-1.bnstat.com:19092&#39;,&#39;kafka-0.bnstat.com:19092&#39;])
+for msg in consumer:
+    print(&#39;time is:%d ms&#39; % (int(round(time.time() * 1000)) - int(msg.value.decode(&amp;quot;utf8&amp;quot;))))
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;在消费端消费数据验证延迟.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;(.venv) admin@jump-server:~/python$ python kafka-consumer.py
+time is:1774 ms
+time is:2280 ms
+time is:1940 ms
+time is:209 ms
+time is:210 ms
+time is:214 ms
+time is:233 ms
+time is:211 ms
+...
+time is:219 ms
+time is:214 ms
+time is:212 ms
+time is:211 ms
+time is:469 ms
+time is:398 ms
+time is:209 ms
+time is:209 ms
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;总体来看两端的延迟还是比较理想的在300毫秒以内,后续还可以改造代码将监控的数据放在prometheus中并实施监控起来.&lt;/p&gt;
+</description>
+      
+    </item>
+    
+    <item>
+      <title>从socket看事件驱动</title>
+      <link>/post/socket-for-ioevent/</link>
+      <pubDate>Sat, 11 Apr 2020 16:01:23 +0800</pubDate>
+      
+      <guid>/post/socket-for-ioevent/</guid>
+      
+        <description>&lt;h2 id=&#34;前言&#34;&gt;前言&lt;/h2&gt;
+&lt;p&gt;最近一段时间在看werkzegu的源码，也就顺手自己实现了一个类似werkzuge的功能代码，但写完后用&lt;code&gt;ab&lt;/code&gt;压测发现不能支持并发，每个请求都是串行的，这也就引起了我极大的疑惑，顾来写这边文章记录一下. 以下是疑虑的问题所在:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;为什么使用&lt;code&gt;ab&lt;/code&gt;压测&lt;strong&gt;werkzuge&lt;/strong&gt;可以实现并发处理http请求(注：不是真正的并发，只是在请求上)，底层用了什么技术.(io事件驱动)&lt;/li&gt;
+&lt;li&gt;io事件驱动和多线程和多进程有什么关系呢？(也考虑过和协程的关系)&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;带着这样的问题，我做了以下的代码编写.&lt;/p&gt;
+&lt;h2 id=&#34;http服务实现&#34;&gt;Http服务实现&lt;/h2&gt;
+&lt;p&gt;我们知道HTTP服务是建立在四层TCP基础之上的,采用的方式为一问一答形式,对应HTTP中的术语为&lt;strong&gt;request&lt;/strong&gt;和&lt;strong&gt;response&lt;/strong&gt;.&lt;/p&gt;
+&lt;h4 id=&#34;requests&#34;&gt;requests&lt;/h4&gt;
+&lt;p&gt;客户端发送一个HTTP请求到服务器的请求消息包括以下格式：请求行（request line）、请求头部（header）、空行和请求数据四个部分组成.
+一个典型的使用GET方法来传递数据的实例如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;GET /hello.txt HTTP/1.1
+User-Agent: curl/7.16.3 libcurl/7.16.3 OpenSSL/0.9.7l zlib/1.2.3
+Host: www.example.com
+Accept-Language: en, mi
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;response&#34;&gt;response&lt;/h4&gt;
+&lt;p&gt;和客户端请求类型,response也包含四部分: 状态行、消息报头、空行和响应正文。&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;HTTP/1.1 200 OK
+Date: Mon, 27 Jul 2009 12:28:53 GMT
+Server: Apache
+Last-Modified: Wed, 22 Jul 2009 19:15:56 GMT
+
+Hello World! My payload includes a trailing CRLF.
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;基于以上对HTTP的定义，我们可以使用socket简单实现一个HTTP服务如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import socket,json,time
+addr_port = (&#39;127.0.0.1&#39;, 8000)
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    s.bind(addr_port)
+    s.listen(1)
+    print(&amp;quot;listen: http://%s:%s&amp;quot; % addr_port)
+    while True:
+        conn, addr = s.accept()
+        with conn:
+            data = conn.recv(1024)
+            print(&#39;conn: IP %s, port: %s&#39; % addr)
+            print(data);
+            if not data: break
+            time.sleep(5)
+            conn.send(&#39;HTTP/1.1 200 OK\r\n\r\n&#39;.encode())
+            conn.sendall(json.dumps({&#39;code&#39;:200,&#39;msg&#39;:&#39;success&#39;}).encode())
+    s.close()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;此时你可以通过浏览器或者使用&lt;code&gt;curl&lt;/code&gt;命令来作为http客户端发起请求，可以看到服务器响应了一个json格式的数据.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;➜  ~ curl http://127.0.0.1:8000
+{&amp;quot;code&amp;quot;: 200, &amp;quot;msg&amp;quot;: &amp;quot;success&amp;quot;}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;到此可以说我们实现了http协议中定义的最基础的功能:请求和响应. 如果此时你使用如&lt;code&gt;ab&lt;/code&gt;这个样的压测工具你会发现不管有没有指定并发你都会发现请求是串行化的,也就是服务端必须等待上一个请求处理完成后才会接收下一个请求进行处理.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;➜  ~ ab -c 10 -n 100 http://127.0.0.1:8000/
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;但对比与werkzuge来说，我们使用同样的压测方法，werkzegu一次可以接收10个并发请求(注意：是接收请求不是处理请求). 你可以这样验证：&lt;/p&gt;
+&lt;p&gt;将上面socket代码和werkzuge应用中的处理请求代码&lt;code&gt;sleep 5s&lt;/code&gt;钟,分别使用&lt;code&gt;ab&lt;/code&gt;进行并发10个,共100请求的测试,在5s之后中断&lt;code&gt;ab&lt;/code&gt;测试.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;自己写的socket： 处理1到2个请求后后端服务由于中断连接就关闭了&lt;/li&gt;
+&lt;li&gt;werkzuge: 即使中断了&lt;code&gt;ab&lt;/code&gt;测试了，但对于客户端来说一次并发的请求已经发出，服务端使用了事件驱动的方式也接收了客户端的请求，后续会继续处理请求，可以看到一共处理10请求，也正是客户端的一次并发数.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;io事件select&#34;&gt;IO事件select&lt;/h2&gt;
+&lt;p&gt;在之前的一篇文章中讲过,werkzuge后端还是调用socketserver中的&lt;code&gt;serve_forever&lt;/code&gt;方法来监听socket. 从源码上可以看出也是使用&lt;code&gt;select&lt;/code&gt;,&lt;code&gt;poll&lt;/code&gt;,&lt;code&gt;epoll&lt;/code&gt;这样io事件模型. 我来详细描述下:&lt;/p&gt;
+&lt;p&gt;select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的,所以我们可以看到werkzuge虽然接收了并发的10个请求,但每个处理还是串行的,也就是说响应这些请求的总时间是和我们自定义的单线程是一样的(50s).&lt;/p&gt;
+&lt;p&gt;select, poll, epoll 都是一种 I/O 复用的机制。它们都是通过一种机制(其实也就是轮训监听的描述符)来监视多个描述符，一旦某个描述符就绪了，就能通知程序进行相应的读写操作.Python中也提供了对应的模块实现改功能&lt;strong&gt;select&lt;/strong&gt;!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;select&lt;/strong&gt; 模块实现了上述的三个I/O复用机制,我们来看一下select定义.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt; def select(rlist, wlist, xlist, timeout=None):
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;这三个参数都是一个数组，数组中的内容均为一个文件描述符(file descriptor)对象或者一个拥有返回文件描述符方法&lt;code&gt;fileno()&lt;/code&gt;的对象.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;rlist: 就绪读list&lt;/li&gt;
+&lt;li&gt;wlist: 就绪写list&lt;/li&gt;
+&lt;li&gt;xlist: 异常的list&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;code&gt;timeout&lt;/code&gt;参数是一个浮点类型的参数,如果不传或者为&lt;strong&gt;None&lt;/strong&gt;,那么调用将永远不会超时，也就是不会阻塞.&lt;/p&gt;
+&lt;p&gt;返回值为函数传递的三个参数的元组, 每个为当前已经准备好的对应的描述符！&lt;/p&gt;
+&lt;p&gt;我们来改写自己写的程序！&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import time
+import socket, select,json
+
+l_addr=(&#39;127.0.0.1&#39;,8000)
+def serve():
+    s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    s.bind(l_addr)
+    print(&amp;quot;listen: http://%s:%s&amp;quot; % l_addr)
+    s.listen(5)
+    inputs =[s,]
+    outputs=[]
+    s.setblocking(True)
+    while True:
+
+        r,w,e=select.select(inputs,outputs,inputs)
+        print(&amp;quot;readables number: &amp;quot;, len(inputs))  #注释2
+        for obj in r:
+            if obj==s:
+                conn,addr=obj.accept()
+                conn.setblocking(0)
+                inputs.append(conn)
+
+            else:
+                data_recv = obj.recv(1024)
+                if not data_recv:
+                    inputs.remove(obj)
+                    if obj in outputs:
+                        outputs.remove(obj)
+                    obj.close()
+                if data_recv:
+                    if obj not in outputs:
+                        outputs.append(obj)
+
+        for obj in w:
+            # print(&#39;deal socket...&#39;) # 注释1
+            time.sleep(5)
+            obj.send(&#39;HTTP/1.1 200 OK\r\n\r\n&#39;.encode())
+            obj.sendall(json.dumps({&amp;quot;ret&amp;quot;:0,&amp;quot;msg&amp;quot;:&amp;quot;success&amp;quot;}).encode())
+            e.append(obj)
+
+        for obj in e:
+            inputs.remove(obj)
+            if obj in outputs:
+                outputs.remove(obj)
+            obj.close()
+
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;对于上面的注释我在这里解释一下,前面说过select, poll, epoll本质上都是同步的I/O，因为它们都是在读写事件就绪后自己负责进行读写.所以说当它在负责读写的时候由于我们&lt;code&gt;sleep 5&lt;/code&gt;秒钟，那么所有的socket处理数据都会阻塞掉，在当我停止&lt;code&gt;ab&lt;/code&gt;压测时，由于当前的socket连接已经关闭，所以在&lt;strong&gt;注释1&lt;/strong&gt;处就会出现报错.&lt;strong&gt;注释2&lt;/strong&gt;是采用另一种方式验证,即统计当前就绪读状态下的&lt;strong&gt;socket&lt;/strong&gt;的数量.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;listen: http://127.0.0.1:8000
+readables number:  1
+readables number:  2
+readables number:  3
+readables number:  4
+readables number:  5
+readables number:  6
+readables number:  7
+readables number:  8
+readables number:  9
+readables number:  10
+readables number:  11
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;我们这里指定并发10个请求,再加上处于监听的socket刚好11个. 这也就验证了上面所在的io事件驱动本质:&lt;strong&gt;在接收请求中提供一种并发现象,在处理请求中本质是还是同步io&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;io事件poll&#34;&gt;io事件poll&lt;/h2&gt;
+&lt;h4 id=&#34;select的缺点&#34;&gt;select的缺点&lt;/h4&gt;
+&lt;ul&gt;
+&lt;li&gt;select 最多只能监听1024个描述符，当然这可以通过重新编译Linux内核在改变这个值.&lt;/li&gt;
+&lt;li&gt;每次对于监听的socket进行轮训查找是一个非常耗时的工作&lt;/li&gt;
+&lt;li&gt;轮训的操作有linux内核来完成，也就是文件描述符要进入内核空间,从内核空间到用户空间的开销很大&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;实际我在使用&lt;code&gt;ab&lt;/code&gt;做压测统计时发现就绪读列表中最多也就400个左右.&lt;/p&gt;
+&lt;h4 id=&#34;poll的改进&#34;&gt;poll的改进&lt;/h4&gt;
+&lt;p&gt;poll本质上和select没有区别，只是没有了最大连接数(linux上默认1024个)的限制，原因是它基于链表存储的。&lt;/p&gt;
+&lt;h4 id=&#34;python中的poll&#34;&gt;python中的poll&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;select.poll()&lt;/code&gt;: 返回一个poll对象,并支持&lt;code&gt;sizehint&lt;/code&gt;参数来优化内部数据结构,该对象支持一下方法.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;eventmask&lt;/strong&gt;表示一个可选的掩码位,用于描述要检查的事件类型,其值是一下的集合：
+|   名称    |                  含义                  |
+| :&amp;mdash;&amp;mdash;-: | :&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;: |
+|  POLLIN   |                有数据读                |
+|  POLLPRI  |              有数据紧急读              |
+|  POLLOUT  |         数据输出，并且不会阻塞         |
+|  POLLERR  |              某种错误情况              |
+|  POLLHUP  |                 挂起T                  |
+| POLLRDHUP | 准备关闭流socket或等待另外一半连接关闭 |
+| POLLNVAL  |        无效的请求：描述符未打开        |&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;register(self, fd, eventmask=None)&lt;/code&gt;:  向poll对象中注册一个文件描述符,如果已经存在则抛出一个OS Error.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;unregister(self, fd)&lt;/code&gt;:  从poll对象中删除已经注册的描述符&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;modify(self, fd, eventmask)&lt;/code&gt;: 修改一个已经注册的描述符,和&lt;code&gt;register&lt;/code&gt;功能类似,如果尝试修改一个没有注册的描述符会触发一个OS Error.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;poll(self, timeout=-1, maxevents=-1)&lt;/code&gt;: 轮训已经注册的文件描述符,返回一个包含&lt;code&gt;(fd,event)&lt;/code&gt;两个元素的元组列表. 如果列表为空则表示超时或者没有对应的io事件发生;&lt;code&gt;timeout&lt;/code&gt;表示系统等待返回事件的超时时间，单位毫秒；如果为None,负数,或者不指定则一直阻塞下去.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;用此种模式改写我们自己的socket服务如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import select, socket,time,json
+
+l_addr=(&#39;127.0.0.1&#39;,8000)
+def server():
+    # init socket
+    s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    s.bind(l_addr)
+    print(&amp;quot;listen: http://%s:%s&amp;quot; % l_addr)
+    s.listen(1)
+    s.setblocking(True)
+    # init poll
+    my_poll = select.poll()
+    my_poll.register(s.fileno(),select.EPOLLIN)
+    conn_dict={}
+    try:
+        while True:
+            for fd, event in my_poll.poll():
+                if event == select.POLLIN:
+
+                    if fd == s.fileno():
+                        conn,addr = s.accept()
+                        conn.setblocking(False)
+                        my_poll.register(conn.fileno(),select.EPOLLIN)
+                        conn_dict[conn.fileno()]=conn
+                    else:
+                        print(&#39;poll in.....&#39;)
+                        conn = conn_dict[fd]
+                        data = conn.recv(1024)
+                        if data:
+                            my_poll.modify(conn.fileno(),select.POLLOUT)
+                elif event == select.POLLOUT:
+                    time.sleep(1)
+                    # print(&#39;deal requests...&#39;)
+                    conn = conn_dict[fd]
+                    conn.send(&#39;HTTP/1.1 200 OK\r\n\r\n&#39;.encode())
+                    conn.sendall(json.dumps({&amp;quot;ret&amp;quot;:0,&amp;quot;msg&amp;quot;:&amp;quot;success&amp;quot;}).encode())
+                    my_poll.unregister(conn.fileno())
+                    conn.close()
+    except Exception as e:
+        s.close()
+    finally:
+        print(123)
+        s.close()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;同样的道理我们无法在请求处理过程中看到并发的效果(也就是&lt;code&gt;select.POLLOUT&lt;/code&gt;事件下),可以在&lt;code&gt;POLLIN&lt;/code&gt;模式下通过简单的打印来看并发的请求.&lt;/p&gt;
+&lt;p&gt;当我们指定高并发时，比如100个,可以看到快速的&lt;code&gt;print&lt;/code&gt;出数据来.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;ab -c 100 -n 1000 http://localhost:8000/
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;io事件epoll&#34;&gt;io事件epoll&lt;/h2&gt;
+&lt;h4 id=&#34;poll的缺点&#34;&gt;poll的缺点&lt;/h4&gt;
+&lt;p&gt;poll解除select最大1024个描述符限制,其他的和select类似.事实上，同时连接的大量客户端在一时刻可能只有很少的处于就绪状态，因此随着监视的描述符数量的增长，其效率也会线性下降。&lt;/p&gt;
+&lt;h4 id=&#34;什么是epoll&#34;&gt;什么是epoll&lt;/h4&gt;
+&lt;p&gt;epoll是在2.6内核中提出的，是之前的select和poll的增强版本。相对于select和poll来说，epoll更加灵活，没有描述符限制。epoll使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中，这样在用户空间和内核空间的copy只需一次。&lt;/p&gt;
+&lt;p&gt;关于上面的缺点epoll使用了一下方案来解决：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;内核copy&lt;/strong&gt; 在底层使用**mmap()**文件映射的方式加速与内核空间的数据传递&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;最大连接数&lt;/strong&gt; 最大连接数取决你操作系统定义的&lt;strong&gt;file_max&lt;/strong&gt;,也就是说取决与操作系统的限制,而且这个值可以修改.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;fd轮训&lt;/strong&gt; epoll采用了回调的机制来管理已就绪的fd,所以epoll永远管理的是一个已就绪的列表&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这里有一个思考，epoll更像是一个高贵的公子,自己拿到的东西永远都是已经准备好的(就绪的fd),但是是谁在为它准备这些已就绪的fd呢？ 看有些文章说是Python底层在做这件事情.&lt;/p&gt;
+&lt;p&gt;epoll对与fd的操作有两种模式： &lt;strong&gt;LT level trigger(水平出发)&lt;/strong&gt; 和 &lt;strong&gt;ET edge trigger(边沿触发)&lt;/strong&gt;.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;LT模式：当检测到描述符事件发生并将此事件通知应用程序，应用程序可以不立即处理该事件。下次调用epoll_wait时，会再次响应应用程序并通知此事件。&lt;/li&gt;
+&lt;li&gt;ET模式：当检测到描述符事件发生并将此事件通知应用程序，应用程序必须立即处理该事件。如果不处理，下次调用epoll_wait时，不会再次响应应用程序并通知此事件。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;python中的epoll&#34;&gt;python中的epoll&lt;/h4&gt;
+&lt;p&gt;epoll模型也是在select模块中，如果需要一个epoll对象直接实例化就可以了！&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;epoll = select.epoll(sizehint=-1, flags=0)
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;sizehint： 这个参数没有太多的意义，仅仅使用在没有&lt;code&gt;epoll_create1()&lt;/code&gt;系统调用的老系统中&lt;/li&gt;
+&lt;li&gt;flags： 这个参数已弃用，在python3.4之后就直接使用&lt;strong&gt;select.EPOLL_CLOEXEC&lt;/strong&gt;,不用管.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;并且在3.4之后支持和&lt;code&gt;with&lt;/code&gt;语句一起协同工作.&lt;/p&gt;
+&lt;p&gt;epoll中的事件:
+|    名称     |                  含义                  |
+| :&amp;mdash;&amp;mdash;&amp;mdash;: | :&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;: |
+|   EPOLLIN   |                 读就绪                 |
+|  EPOLLOUT   |                 写就绪                 |
+|  EPOLLPRI   |              有数据紧急读              |
+|  EPOLLERR   |          assoc,fd 上发生错误           |
+|  EPOLLHUP   |          assoc,fd 上发生挂起           |
+|   EPOLLET   |      设置边沿触发，默认是水平触发      |
+| EPOLLRDHUP  | 准备关闭流socket或等待另外一半连接关闭 |
+| EPOLLRDNORM |             和EPOLLIN一样              |
+| EPOLLRDBAND |          可以读取高优先级数据          |
+| EPOLLWRNORM |             和EPOLLOUT一样             |
+| EPOLLWRNORM |          可以写取高优先级数据          |
+|  EPOLLMSG   |                  忽略                  |&lt;/p&gt;
+&lt;p&gt;epoll中提供了一下方法:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;register(self, fd, eventmask=None)&lt;/code&gt; 向epoll中注册一个fd,如果已经存在就会包OS Error.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;unregister(self, fd)&lt;/code&gt; epoll中注销一个fd.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;poll(self,timeout=-1, maxevents=-1)&lt;/code&gt; 在epoll的fd中等待事件发生&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;modify(self, fd, eventmask)&lt;/code&gt; 修改一个fd的事件&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;close()&lt;/code&gt; 关闭epoll对象描述符&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;fileno()&lt;/code&gt; 返回当前epoll对象的fd.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;使用epoll改写我们程序如下:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;import select,socket,json,time
+
+l_addr=(&#39;127.0.0.1&#39;,8000)
+
+
+def server():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(l_addr)
+    s.listen(1)
+    print(&amp;quot;listen: http://%s:%s&amp;quot; % l_addr)
+    s.setblocking(0)
+    epoll = select.epoll()
+    epoll.register(s.fileno(),select.EPOLLIN)
+    try:
+        conn_dict={}
+        while True:
+            events = epoll.poll()
+            print(len(events))   #注释1
+            for fd, event in events:
+                if event == select.EPOLLIN:
+                    if fd == s.fileno():
+                        conn,addr = s.accept()
+                        conn.setblocking(False)
+                        epoll.register(conn.fileno(),select.EPOLLIN)
+                        conn_dict[conn.fileno()]=conn
+                    else:
+                        print(&#39;input request...&#39;)  #注释2
+                        conn = conn_dict[fd]
+                        time.sleep(1)
+                        data = conn.recv(1024)
+                        if data:
+                            epoll.modify(conn.fileno(),select.EPOLLOUT)
+                elif event == select.EPOLLOUT:
+                    conn = conn_dict[fd]
+                    conn.send(&#39;HTTP/1.1 200 OK\r\n\r\n&#39;.encode())
+                    conn.sendall(json.dumps({&amp;quot;ret&amp;quot;:0,&amp;quot;msg&amp;quot;:&amp;quot;success&amp;quot;}).encode())
+                    conn.shutdown(socket.SHUT_RDWR)
+                elif event == select.EPOLLHUP:
+                    conn = conn_dict[fd]
+                    epoll.unregister(conn.fileno())
+                    conn.close()
+    finally:
+        epoll.unregister(s.fileno())
+        epoll.close()
+        s.close()
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;使用上面的&lt;code&gt;ab&lt;/code&gt;压测你会发现&lt;strong&gt;注释1&lt;/strong&gt;和并发的连接数是一样的大约在100个左右(ab一次100个并发),在&lt;strong&gt;注释2&lt;/strong&gt;处的接收请求数据很快就打印100个，和poll类似.&lt;/p&gt;
+&lt;h2 id=&#34;高级别selectors模块&#34;&gt;高级别selectors模块&lt;/h2&gt;
+&lt;p&gt;这个模块是&lt;code&gt;select&lt;/code&gt;扩展,可以根据用户的系统选择合适的io模型，官方也鼓励使用这个模块.这里就不多讲解了,贴一下&lt;strong&gt;server_forver&lt;/strong&gt;的源码供大家参考:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;with _ServerSelector() as selector:
+    selector.register(self, selectors.EVENT_READ)
+
+    while not self.__shutdown_request:
+        ready = selector.select(poll_interval)
+        # bpo-35017: shutdown() called during select(), exit immediately.
+        if self.__shutdown_request:
+            break
+        if ready:
+            self._handle_request_noblock()
+
+        self.service_actions()
+&lt;/code&gt;&lt;/pre&gt;&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
+&lt;p&gt;事件驱动I/O的一个潜在的优势在于它可以在不使用多线程或者多进程的情况下同时处理大量的连接.也就是说,&lt;code&gt;select()&lt;/code&gt;可以来监视成千上百个socket,并且对他们中间发送的事件做出响应.&lt;/p&gt;
+&lt;p&gt;事件驱动的缺点在于这里没有涉及真正的并发.如果一个事件的处理方法阻塞了或者执行了一个较长的耗时计算(也就是我们在列子中指定的&lt;code&gt;sleep&lt;/code&gt;函数),那么之后所有的处理请求过程都会阻塞.&lt;/p&gt;
+&lt;h2 id=&#34;参考&#34;&gt;参考&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.runoob.com/http/http-messages.html&#34;&gt;HTTP消息结构&lt;/a&gt;
+&lt;a href=&#34;https://www.jianshu.com/p/abfb47d36fba&#34;&gt;Linux下I/O多路复用select, poll, epoll 三种模型的Python使用&lt;/a&gt;
+&lt;a href=&#34;http://scotdoyle.com/python-epoll-howto.html&#34;&gt;How To Use Linux epoll with Python&lt;/a&gt;
+&lt;a href=&#34;https://docs.python.org/3/library/select.html#poll-objects&#34;&gt;select — Waiting for I/O completion&lt;/a&gt;&lt;/p&gt;</description>
+      
+    </item>
+    
+    <item>
       <title>Werkzuge的一次请求和响应</title>
       <link>/post/werkzuge-request/</link>
       <pubDate>Tue, 04 Feb 2020 16:01:23 +0800</pubDate>
@@ -1607,8 +2146,7 @@ Docker registries存储Docker镜像. 像Docker Hub和Docker Cloud是公共镜像
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;第一步：求-3的补码，既求-3的绝对值3的原码取反（11111100）再加1得11111101。在上图中就是输入B经过取反再加CI等于11111101。&lt;/p&gt;
 &lt;p&gt;第二步：2的补码（00000010）加上-3的补码（11111101）等于11111111。在上图中就是最后进位0等于CO输出。而SUB为1，两个输入1、0经过异或门得1，最左侧输出为1，表示结果为负数。 所以我们也就区分了11111111是补码表示为-1而不是255.&lt;/p&gt;
 &lt;h2 id=&#34;五总结&#34;&gt;五、总结&lt;/h2&gt;
-&lt;p&gt;对于CPU来说,最主要的功能就是计算和存储,计算我们通常用ALU来实现,存储也就是我们常说的寄存器。这个文档我简单介绍了ALU中关于加减法的设计,后续我们将介绍关于存储的设计和实现。&lt;/p&gt;
-</description>
+&lt;p&gt;对于CPU来说,最主要的功能就是计算和存储,计算我们通常用ALU来实现,存储也就是我们常说的寄存器。这个文档我简单介绍了ALU中关于加减法的设计,后续我们将介绍关于存储的设计和实现。&lt;/p&gt;</description>
       
     </item>
     

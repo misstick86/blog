@@ -29,7 +29,10 @@
       <pubDate>Sat, 27 Apr 2019 16:01:23 +0800</pubDate>
       
       <guid>/post/logic-circuit/</guid>
-      <description>一、逻辑电路 在数字逻辑电路中，电平的高低有两种状态，我们称之为高电平、低电平。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL</description>
+      <description>&lt;h2 id=&#34;一逻辑电路&#34;&gt;一、逻辑电路&lt;/h2&gt;
+&lt;p&gt;在数字逻辑电路中，电平的高低有两种状态，我们称之为&lt;strong&gt;高电平&lt;/strong&gt;、&lt;strong&gt;低电平&lt;/strong&gt;。一般规定低电平为0~0.25V,高电平为3.5-5V. 在TTL门电路中，把低电平用数字0表示，把高电平用数字1表示。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;/images/circuit/dianlu.jpg&#34; alt=&#34;dianlu&#34;&gt;&lt;/p&gt;
+&lt;p&gt;由此可以看出，高低电频的表示和二进制数字的表示法一样，那么我们就可以使用组合的逻辑电路来实现二进制之间的逻辑计算。&lt;/p&gt;</description>
     </item>
     
     <item>
