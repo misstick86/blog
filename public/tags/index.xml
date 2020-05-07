@@ -7,7 +7,7 @@
     <generator>Hugo -- gohugo.io</generator>
     <language>en</language>
     <copyright>小松松</copyright>
-    <lastBuildDate>Wed, 06 May 2020 16:01:23 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 30 Apr 2020 16:01:23 +0800</lastBuildDate>
     
 	<atom:link href="/tags/index.xml" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
     <item>
       <title>kafka</title>
       <link>/tags/kafka/</link>
-      <pubDate>Wed, 06 May 2020 16:01:23 +0800</pubDate>
+      <pubDate>Thu, 30 Apr 2020 16:01:23 +0800</pubDate>
       
       <guid>/tags/kafka/</guid>
       <description></description>
@@ -24,7 +24,7 @@
     <item>
       <title>kubernetes</title>
       <link>/tags/kubernetes/</link>
-      <pubDate>Wed, 06 May 2020 16:01:23 +0800</pubDate>
+      <pubDate>Thu, 30 Apr 2020 16:01:23 +0800</pubDate>
       
       <guid>/tags/kubernetes/</guid>
       <description></description>
