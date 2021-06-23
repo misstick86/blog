@@ -1,12 +1,3 @@
----
-title: "k8s集群上部署kafka集群"
-date: 2020-04-30T16:01:23+08:00
-lastmod: 2020-05-04T16:01:23+08:00
-draft: false
-tags: ["linux","kafka","kubernetes"]
-categories: ["运维"]
----
-
 #### 前言
 公司需要一套kafka集群来采集各个区域的用户行为日志,目前香港集群已经部署完成,还需要在东南亚和北美各创建一个kafka集群并将数据同步到香港的kafka集群中. kafak的集群部署在kubernets中,采用helm部署方式,集群之间的数据同步使用的是kafka官方给的解决方案**mirrormaker**.
 
