@@ -10,8 +10,6 @@ informer有三大核心组件:
 
 以上三大组件会在后续展开解释.
 
-
-
 ## basic Informer
 
 官方给的workqueue示例上使用的是一个最基本的informer示例, 它接收如下参数进行实例化:
