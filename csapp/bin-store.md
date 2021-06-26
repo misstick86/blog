@@ -1,20 +1,5 @@
 ---
-title: "二进制存储"
-date: 2019-06-06T16:01:23+08:00
-lastmod: 2019-06-07T16:01:23+08:00
-draft: false
-tags: []
-categories: [计算机基础]
 
-
-# You can also close(false) or open(true) something for this content.
-# P.S. comment can only be closed
-# comment: false
-# toc: false
-
-# You can also define another contentCopyright. e.g. contentCopyright: "This is another copyright."
-# reward: false
-mathjax: true
 ---
 
 这一篇主要讲解内存和寄存器是如何存储数据。
@@ -29,11 +14,11 @@ mathjax: true
 
 上述所举的例子都是在特定的输入产生特定的输出,那么有没有一种方式输入即是输出,输出也是输入呢？ 就像下面这样。
 
-![](/images/circuit/反馈.jpg)
+![](../static/images/circuit/反馈.jpg)
 
 这个电路装置功能是将输入取反然后再将其输出作为输入,我们把这种电路称为振荡器,而这种电路连接的方式叫做反馈.振荡器本身的输出也是在0和1之间不断的变换,如下图所示:
 
-![](/images/circuit/clock.jpg)
+![](../static/images/circuit/clock.jpg)
 
 振荡器从某个状态开始，经过一段时间后又回到初始状态,我们叫做一个循环或者一个周期. 而周期的倒数也就是我们所说的频率,用赫兹来表示。通过我们所说的CPU 2.5GHZ也就是指CPU内部晶体震荡的次数.
 
@@ -52,7 +37,7 @@ mathjax: true
 
 我们将两个或非门按照如下方式进行连接:
 
-![](/images/circuit/或非门.jpg)
+![](../static/images/circuit/或非门.jpg)
 
 在初始电路状态下只有左边或非门的输出为1,右边的或非门输出0.  当`1号`输入为1时,左边的输出为0,而`2号`输入还是0,所以右边的或非门输出为1.此时由于电路反馈的原因，我们无论怎么改变`1号`的输入左边或非门的输出都不会发生改变,**永远为0**. 也就是说我们无论为`1号`输入做任何改变都无法改变最终门电路的输出。 这个不觉得很奇怪吗？
 
@@ -83,7 +68,7 @@ S(Set)表示设置,为高电位;R(reset)表示重置,为低电位。 其输出�
 | 1   | 1   | 禁止 |     |
 
 R-S触发器的连接如下:
-![](/images/circuit/rs.jpg)
+![](../static/images/circuit/rs.jpg)
 
 #### D触发器
 
@@ -95,17 +80,17 @@ D触发器是在R-S触发器基础上构建出来的,它拥有一个数据端输
 | 1   | 1   | 1   | 0   |
 | X   | 0   | Q   | Q~  |
 
-![](/images/circuit/D触发器.jpg)
+![](../static/images/circuit/D触发器.jpg)
 
 由此，我们便使用D触发器锁住了一位bit位二进制数.为了便于理解，我们将`时钟`可以理解为允许写入线,将`数据端`理解为允许写入的数据。并将其封装在一个盒子中,拥有此盒子便可以向盒子读写1bit的数据和读取数据。其抽象的结构便如下图所示:
 
-![](/images/circuit/触发器.jpg)
+![](../static/images/circuit/触发器.jpg)
 
 很容易想到，如果我们把8个这样的设备组合在一起也就成了一个可以保存8位二进制数的存储元件,那64位呢？也就是一个可以存储64个二进制位的存储器,像这样的器件我们也可以叫做寄存器。
 
 下图是一个可以存储8位的触发器示意图：
 
-![](/images/circuit/8位触发器.jpg)
+![](../static/images/circuit/8位触发器.jpg)
 
 ## 三、寄存器和内存
 
@@ -117,19 +102,11 @@ D触发器是在R-S触发器基础上构建出来的,它拥有一个数据端输
 
 所以我们将上述的8位所存储进行抽象成为一个8位寄存器:
 
-![](/images/circuit/寄存器.jpg)
+![](../static/images/circuit/寄存器.jpg)
 
 #### 内存
 
 `内存的最大一个特点就是我们给定一个地址,然后可以在该地址上读取或写入一个数.`
-
-
-
-
-
-
-
-
 
 ## 四、总结
 

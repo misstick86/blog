@@ -1,12 +1,4 @@
----
-title: "Docker所依赖的Linux内核技术"
-date: 2019-05-10T16:01:23+08:00
-lastmod: 2019-05-11T16:01:23+08:00
-draft: false
-tags: ["docker", "linux", "namespace"]
-categories: ["linux", "容器化"]
 
----
 
 
 上一篇文章讲到Docker本质上还是一个进程，它的隔离主要依赖于Linux内核的Namespace机制，这篇文章就带你从进程创建到Namespace机制进行简单剖析。

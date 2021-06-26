@@ -1,21 +1,4 @@
 ---
-title: "数字基础"
-date: 2019-04-21T16:01:23+08:00
-lastmod: 2019-05-07T16:01:23+08:00
-draft: false
-tags: []
-categories: ["计算机基础"]
-
-# weight: 1
-
-# You can also close(false) or open(true) something for this content.
-# P.S. comment can only be closed
-# comment: false
-# toc: false
-
-# You can also define another contentCopyright. e.g. contentCopyright: "This is another copyright."
-# reward: false
-mathjax: true
 
 ---
 
@@ -33,7 +16,6 @@ mathjax: true
 
 但现在使用过计算机的人来说都知道计算机底层采用的都是二进制数来表示，这是由于依赖于底层电器信号的限制我们只能模拟出低电频和(0)和高电频(1)的信号,自然使用数字**0**和**1**表示最为合适. 但这种表示方法对于人来说不易读而且表示冗长;所以,向上又使用了十六进制来表示，使其变得易读。
 
-<!--more-->
 #### 二进制
 
 二进制，也就是由**0**和**1**组成,用来表示一个十进制**5**数如下:
@@ -175,7 +157,7 @@ $$
 
 对于一个8格式浮点数，其中e为4位，f为3位的浮点数表示如下: (偏置值为: 7)
 
-![](./image/floatformat.jpg)
+![](../static/images/circuit/floatformat.jpg)
 
 回到我们最开头，为什么我们用 0.3 + 0.6 不能得到 0.9 呢？这是因为，浮点数没有办法精确表示 0.3、0.6 和 0.9。事实上，我们拿出 0.1～0.9 这 9 个数，其中只有 0.5 能够被精确地表示成二进制的浮点数，也就是 s = 0、e = -1、f = 0 这样的情况。
 
