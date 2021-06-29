@@ -111,7 +111,7 @@ func NewFramework(r Registry, profile *config.KubeSchedulerProfile, opts ...Opti
 
 **Registry**是所有可用插件的集合,调度框架使用一个*Registry*启动被配置插件, 在调度框架被初始化前所有的插件需要要注册到注册表中.
 
-注册表本身是一个map数据结构, *key*是该插件的名称, *value*是对应插件的构造方法,一版叫做**New function Name**.
+注册表本身是一个map数据结构, *key*是该插件的名称, *value*是对应插件的构造方法,一般叫做**New function Name**.
 
 通过**NewInTreeRegistry**函数将注册所有的*树内插件*(也叫做内部插件).  已注册的内部插件如下所示:
 [https://github.com/kubernetes/kubernetes/blob/release-1.21/pkg/scheduler/framework/plugins/registry.go#L56](https://github.com/kubernetes/kubernetes/blob/release-1.21/pkg/scheduler/framework/plugins/registry.go#L56)
