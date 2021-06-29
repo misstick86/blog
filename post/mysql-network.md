@@ -1,23 +1,3 @@
----
-title: "记录一次公司的网络丢包"
-author: "Murray Bourne"
-date: 2019-08-04T16:01:23+08:00
-lastmod: 2019-08-05T16:01:23+08:00
-draft: false
-tags: ["network", "linux", "mysql"]
-categories: ["linux", "网络"]
-
-# mathjax: true
-
-# Use KaTeX
-# See https://github.com/KaTeX/KaTeX
-katex: true
-
-# Use Mmark
-# See https://gohugo.io/content-management/formats/#mmark
-markup: mmark
----
-
 最近公司网络出现一个很诡异的现象,Navicat连接阿里云数据库等待一段时间(大约5s)之后,再次执行相应的SQL语句会变的异常卡顿,经过排查问题出现在我们的防火墙设备上,以下是排查过程.
 
 ## 一、现象描述
@@ -26,14 +6,14 @@ markup: mmark
 
 接开发人员反馈后立即登陆到本地的一个ubuntu机器进行网络测试,因为从现象上来看可以大致判断这是一个网络问题,于是ping对应的RDS数据后发现网络并没有什么异常。
 
-<!--more-->
-![1571364084275](/images/network/1571364084275.png)
+
+![1571364084275](../static/images/network/1571364084275.png)
 
 从上图标红可以看到丢包率为0,每个包的延迟都在3ms左右,可以说是非常的正常,这也说明我们的公司网络整体是正常的。
 
 既然问题是出现在MySQL上,用Navicat现象不明显,此时也就在本地的一台ubuntu机器上使用MySQL客户端连接并抓包来分析一下。发现从数据库认证到执命令是正常的，但隔一段时间后再次执行一条简单的`show databases`语句就会卡住,一下是抓包的结果.
 
-![1571364627507](/images/network/1571364627507.png)
+![1571364627507](../static/images/network/1571364627507.png)
 
 从上面的抓包来看,MySQL客户端户在一次查询语句之后不停的发送TCP Retransmission 重传包,于是问题就清楚了,客户端连接到服务端后发送的包丢失了,这会有一下情况:
 
@@ -63,7 +43,7 @@ markup: mmark
 
 此时,我们更多的焦点还是定位到公司网络方面,和同事一起梳理了对应的公司网络拓扑图，如下:
 
-![1571367817272](/images/network/1571367817272.png)
+![1571367817272](../static/images/network/1571367817272.png)
 
 从拓扑图可以看出,如果问题出现在公司网络,那么会有以下可能. **光纤接收器**、**防火墙**、**三层路由交换机**、**二层交换机**。所以此时只能使用排除法一个一个来筛选。
 
@@ -84,7 +64,7 @@ markup: mmark
 
 我们的防火墙本身是可以抓包的,以下是在防火墙抓的包:
 
-![1571368712632](/images/network/1571368712632.png)
+![1571368712632](../static/images/network/1571368712632.png)
 
 从上面的抓包来看可以得出一下结论:
 
@@ -96,7 +76,7 @@ markup: mmark
 
 修改对应的参数后，我们在客户端抓包如下:
 
-![1571371078463](/images/network/1571371078463.png)
+![1571371078463](../static/images/network/1571371078463.png)
 
 可以看到服务端或客户端会隔一定的时间发送对应的`TCP Keep-Alive`包来保持这个连接，这样在防火墙断开这个连接之前就发送`TCP Keep-Alive`包来确定保持这个连接，防火墙也就不会再断开这个TCP连接.
 

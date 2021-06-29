@@ -1,10 +1,5 @@
 ---
-title: "Werkzuge的一次请求和响应"
-date: 2020-4-01T16:01:23+08:00
-lastmod: 2020-02-04T16:01:23+08:00
-draft: false
-tags: ["web", "wsgi", "python",'flask']
-categories: ["编程", "网络"]
+
 ---
 
 ## werkzuge示例

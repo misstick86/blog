@@ -1,19 +1,5 @@
 ---
-title: "Python 技巧"
-date: 2019-09-30T16:01:23+08:00
-lastmod: 2019-10-21T16:01:23+08:00
-draft: false
-tags: ["python"]
-categories: ["编程"]
 
-# You can also close(false) or open(true) something for this content.
-# P.S. comment can only be closed
-# comment: false
-toc: ture
-# You can also define another contentCopyright. e.g. contentCopyright: "This is another copyright."
-# contentCopyright: false
-# reward: false
-# mathjax: false
 
 ---
 

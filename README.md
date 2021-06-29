@@ -12,6 +12,12 @@
 - [Docker 和 虚拟机的区别](./docker/docker-basic.md)
 - [Docker技术在Linux下的实现](./docker/docker-linux.md)
 
+## 编程语言
+
+- [Python 编程技巧(参考)](./post/python-skill.md)
+- [事件驱动的Socket](./post/socket-for-ioevent.md)
+- [werkzuge接收请求处源码分析](./post/werkzuge-request.md)
+
 ## Kubernetes 
 
 #### client-go源码解析
@@ -19,7 +25,13 @@
 - [如何使用client-go增删改查pod](./k8s/client-go-pod-operator.md)
 - 
 
+#### kubernetes 资源部署
+
+- [如何在kubernetes上部署kafka](./k8s/kafka-deploy-on-k8s.md)
 
 
 
+## 运维技术
+
+- [记录一下MySQL网络连接问题](./post/mysql-network.md)
 
