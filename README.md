@@ -20,7 +20,7 @@
 
 ## Kubernetes 
 
-#### client-go源码解析
+#### 源码解析
 
 - [如何使用client-go增删改查pod](./k8s/client-go-pod-operator.md)
 - 
