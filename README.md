@@ -22,6 +22,8 @@
 
 #### 源码解析
 
+- [client-go 的客户端对象](./k8s/client-go的四种客户端.md)
+
 - [如何使用client-go增删改查pod](./k8s/client-go-pod-operator.md)
 - 
 
