@@ -2,7 +2,7 @@
 
 在官方的最新调度器提案中定义了一个调度器应该是插件形式运行的, 具体的流程官方也给了一个比较形象的图片. 那么这些都是怎么实现的呢. 这篇文件将根据源码一一揭晓.
 
-![](../static/images/k8s/scheduling-framework-extensions.png)
+![](../../static/images/k8s/scheduling-framework-extensions.png)
 
 框架的接口定义在*pkg/scheduler/framework/interface.go*这个文件里面.
 

@@ -8,7 +8,7 @@
 
 调度框架中定义几个概念. 分别为: **调度周期**, **绑定周期**, **扩展点**, **插件**.
 
-![scheduling-framework-extensions](../static/images/k8s/scheduling-framework-extensions.png)
+![scheduling-framework-extensions](../../static/images/k8s/scheduling-framework-extensions.png)
 
 上图表示一个pod在被调度的整个流程, 被称为`调度上下文`。  POD从优先级队列中首先进入**调度周期**,然后在进入**绑定周期**.
 
