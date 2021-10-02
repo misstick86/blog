@@ -24,5 +24,9 @@ spec:
 
 
 
+对于用户每开发一个新的Driver都必须部署一个**Node-driver-register** sidecar 容器, 可以看到阿里云部署了三个Sidecar容器.
+
+
+
 #### 流程
 

@@ -25,9 +25,10 @@
 #### 源码解析
 
 - [client-go 的客户端对象](./k8s/client-go的四种客户端.md)
-
-- 
-- 
+- CSI 系列
+  * [对于CSI的基本认识](./k8s/csi/csi基础.md)
+  * [node-driver-register 源码解析](./k8s/csi/node-driver-registrar源码分析.md)
+  * [自定义的CSI Plugin 是如何注册到 kubelet中](./k8s/csi/CSI Driver 注册流程.md)
 
 #### kubernetes 资源部署
 
