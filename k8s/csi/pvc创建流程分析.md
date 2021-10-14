@@ -1,6 +1,6 @@
 这篇文章将以Disk Plugin为列, 分析一下一个PVC 创建完成之后调用对应的Stroage Classs 创建PV的整个流程, 会涉及一下组件**[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)**,   **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 的源码.
 
-> 阿里云对 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 做了一部分修改, 拿不到内部的版本,所以就以 **[external-provisioner](https://github.com/k ubernetes-csi/external-provisioner)** 1.16版本进行分析了.
+> 阿里云对 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 做了一部分修改, 拿不到内部的版本,所以就以 [external-provisioner](https://github.com/kubernetes-csi/external-provisioner) 1.16版本进行分析了.
 
 #### 部署
 
@@ -87,11 +87,11 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
       readOnly: true
 ```
 
-> csi-provisioner 对应的开源组件就是 **[external-provisioner](https://github.com/k ubernetes-csi/external-provisioner)** 组件.
+> csi-provisioner 对应的开源组件就是 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 组件.
 
 #### csi-provisioner 介绍
 
-**external-provisioner** 本质上更像一个桥梁, 它对接 *kubernetes* 和用户自定义的***[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)*** plugin. 对于用户来说:  **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 必须实现两个接口: `CreateVolume` and `DeleteVolume` 来供 **external-provisioner** 调用. 对于**external-provisioner**来说,  **external-provisioner** 会 watch住 *kubernetes* 中 pvc 的创建, 从而调用 `CreateVolume` 来创建对应的存储. 当用户删除 pv 时, **external-provisioner** 也会监控到pv的状态改变,从而调用`DeleteVolume`来删除对应的存储.
+**external-provisioner** 本质上更像一个桥梁, 它对接 *kubernetes* 和用户自定义的[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)plugin. 对于用户来说:  **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 必须实现两个接口: `CreateVolume` and `DeleteVolume` 来供 **external-provisioner** 调用. 对于**external-provisioner**来说,  **external-provisioner** 会 watch住 *kubernetes* 中 pvc 的创建, 从而调用 `CreateVolume` 来创建对应的存储. 当用户删除 pv 时, **external-provisioner** 也会监控到pv的状态改变,从而调用`DeleteVolume`来删除对应的存储.
 
 关于 **csi-provisioner** 的设计可以参考: [https://github.com/kubernetes/community/blob/master/contributors/design-proposals/storage/container-storage-interface.md#provisioning-and-deleting](https://github.com/kubernetes/community/blob/master/contributors/design-proposals/storage/container-storage-interface.md#provisioning-and-deleting)
 
@@ -154,7 +154,7 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
 
 
 
-（5）实例化部分资源的Lister和Informer, 如: *StorageClasses*, *PersistentVolumeClaims*, *VolumeAttachment*, 这部分资源会传递给 **csiProvisioner** 结构.
+（4）实例化部分资源的Lister和Informer, 如: *StorageClasses*, *PersistentVolumeClaims*, *VolumeAttachment*, 这部分资源会传递给 **csiProvisioner** 结构.
 
 ```go
 	// Listers
@@ -176,7 +176,7 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
 	claimInformer := factory.Core().V1().PersistentVolumeClaims().Informer()
 ```
 
-（6）实例化一个 *csiProvisioner* 结构体, 该结构体实现的功能便是创建 删除用户的volume请求.
+（5）实例化一个 *csiProvisioner* 结构体, 该结构体实现的功能便是创建 删除用户的volume请求.
 
 ```go
 	// Create the provisioner: it implements the Provisioner interface expected by
@@ -209,7 +209,7 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
 
 ```
 
-（7） 示例化一个*provisionController*, 这个controler便是使用 client-go 监听资源变化的核心组件.
+（6） 实例化一个*provisionController*, 这个controler便是使用 client-go 监听资源变化的核心组件.
 
 ```go
 	provisionController = controller.NewProvisionController(
@@ -220,7 +220,7 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
 	)
 ```
 
-（8）根据是否启用leader功能, 调用run方法启动 **Provision** 程序. **run** 方法如下:
+（7）根据是否启用leader功能, 调用run方法启动 **Provision** 程序. **run** 方法如下:
 
 ```go
 	run := func(ctx context.Context) {
@@ -260,7 +260,7 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
 ```
 
 - **runClaimWorker()** 处理PVC资源变化后的事件.
-- **runVolumeWorker()**处理PV资源变化后的事件.
+- **runVolumeWorker()** 处理PV资源变化后的事件.
 
 
 
@@ -323,9 +323,9 @@ func (ctrl *ProvisionController) shouldProvision(claim *v1.PersistentVolumeClaim
 }
 ```
 
-- 满足创建Volume的条件后,调用**provisionClaimOperation()**函数向 **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 创建磁盘.
-- 实际调用的是**ProvisionExt()**函数, 该函数封装CreateVolume的请求参数,并向 **alibaba-cloud-csi-driver** 的 CreateVolume 接口发送请求创建volume.
-- 请求结束后, 封装一个pv资源并向API-Server创建一个pv资源. 阿里云这里做了一些优化, 默认pv的名字是以**disk-xxxxxxx**形式, 阿里云
+- 满足创建Volume的条件后,调用 **provisionClaimOperation()** 函数向 **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 创建磁盘.
+- 实际调用的是 **ProvisionExt()** 函数, 该函数封装CreateVolume的请求参数,并向 **alibaba-cloud-csi-driver** 的 CreateVolume 接口发送请求创建volume.
+- 请求结束后, 封装一个pv资源并向API-Server创建一个pv资源. 阿里云这里做了一些优化, 默认pv的名字是以**disk-xxxxxxx**形式, 阿里云则修改为他们的DIsk id. 
 
 ###### runVolumeWorker()流程
 
@@ -410,7 +410,7 @@ func (ctrl *ProvisionController) deleteVolumeOperation(volume *v1.PersistentVolu
 
 ## 总结
 
-以上便是创建一个PVC和删除PV时**[external-provisioner](https://github.com/k ubernetes-csi/external-provisioner)** 和  **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)**  两个组件的交互流程.  其中还有很多的细节没有写出来, 但不访问对整个流程的理解. 
+以上便是创建一个PVC和删除PV时**[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 和  **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)**  两个组件的交互流程.  其中还有很多的细节没有写出来, 但不妨碍对整个流程的理解. 
 
 
 
