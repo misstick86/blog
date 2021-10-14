@@ -1,6 +1,6 @@
 ## k8s之ListWatch解析
 
-![client](../static/images/k8s/client-go-controller-interaction.jpeg)
+![client](../../static/images/k8s/client-go-controller-interaction.jpeg)
 
 Client-go中ListWatch是负责对api-server进行监控的组件,可以说kubernetes系统中任何事件的更新都依赖于Listwatch发现.  所以这一节我们将探讨一下它是如何做到的.
 
