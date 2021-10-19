@@ -87,7 +87,7 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
       readOnly: true
 ```
 
-> csi-provisioner 对应的开源组件就是 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 组件.
+> csi-provisioner 对应的开源组件就是 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 组件. **csi-attacher**, **csi-resize**是关于挂载和调整磁盘大小的组件, 这里先不介绍.
 
 #### csi-provisioner 介绍
 
@@ -102,7 +102,7 @@ csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Dis
 这里需要注意一下几个问题:
 
 1. 所有的GRPC调用都必须是幂等的.
-2. 失败同过重试处理
+2. 失败通过重试处理
 3. 一个pv被标识删除后, 删除动作不会立即执行而是等到controller认为可以删除时才会删除.
 
 #### csi-provisioner 源码分析
