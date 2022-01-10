@@ -41,7 +41,7 @@ sudo apt-get install libseccomp2
 wget https://github.com/containerd/containerd/releases/download/v1.5.8/cri-containerd-cni-1.5.8-linux-amd64.tar.gz
 ```
 
-## Step 2: Install Containerd
+#### Step 2: Install Containerd
 
 ```shell
 sudo tar --no-overwrite-dir -C / -xzf cri-containerd-1.6.0-beta.5-linux-amd64.tar.gz
