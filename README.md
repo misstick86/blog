@@ -18,7 +18,9 @@
 - [事件驱动的Socket](./post/socket-for-ioevent.md)
 - [werkzuge接收请求处源码分析](./post/werkzuge-request.md)
 
-## Kubernetes 
+## Kubernetes
+
+- [client-go的四种客户端](./k8s/client-go/client-go的四种客户端.md)
 
 - [如何使用client-go增删改查pod](./k8s/client-go/client-go-pod-operator.md)
 

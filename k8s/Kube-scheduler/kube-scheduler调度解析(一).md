@@ -116,9 +116,9 @@ func NewSchedulerCommand(registryOptions ...Option) *cobra.Command
 
 可以看到, 在实例化scheduler对象时允许你传递自己的**registry**.
 
-一个简单的示例如下:
+一个简单的示例如下:[scheduler-plugin ](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/cmd/scheduler/main.go#L46)
 
-[scheduler-plugin ](https://github.com/kubernetes-sigs/scheduler-plugins/blob/master/cmd/scheduler/main.go#L46)
+
 
 [scheduler-plugins]: https://github.com/kubernetes-sigs/scheduler-plugins
 [Kubernetes scheduing framework ]: https://kubernetes.io/zh/docs/concepts/scheduling-eviction/scheduling-framework/
