@@ -12,7 +12,7 @@ Containerd是行业标准的运行时, 它强调简单性、健壮性和可移�
 
 Containerd的整体架构图如下:
 
-![Containerd](/Users/edianyun/code/my_blog/static/images/containrd/architecture.png)
+![Containerd](../static/images/containerd/architecture.png)
 
 ## 部署和运维
 
