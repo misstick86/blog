@@ -192,3 +192,15 @@ func main() {
         `-- var
 ```
 
+## 内部插件
+使用 `ctr plugins ls` 可以列出当前系统中支持的所有插件类型. 而这些类型又可以分为一下几个类别.
+- **镜像存储类**:  以 *io.containerd.snapshotter.v1* 开头的用于镜像实际存储的系统. Id表示实际每个支持的存储介质.
+- **Service Plugin**: 以*io.containerd.service.v1*开头用于实现各个资源的内部服务插件,如namespace资源, 实际上为上层 GRPC 类插件调用.
+- **GRPC Plugin**: 以*io.containerd.grpc.v1*开头用于实现各个资源的GRPC服务, 会调用对应资源的service Plugin.
+- **runtime shim插件**:  代理 *runc* 插件, 提供了v1,v2版本,默认是v2版本. 
+- **其他插件**:
+	- **io.containerd.content.v1**:  存储所有的不可变内容. key是content的hash值.
+	- **io.containerd.metadata.v1**: 底层是boltdb数据库,存储所有的元信息,如container,task 名称.
+	- **io.containerd.differ.v1**:  
+	- **io.containerd.gc.v1**: 实现垃圾回收策略.
+	- **io.containerd.monitor.v1**: 对接各种监控软件的插件.

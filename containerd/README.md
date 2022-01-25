@@ -5,6 +5,6 @@
 - [使用go编程调用containerd服务](./containerd/containerd-basic-code.md)
 - [namesapce介绍](./namespace.md)
 - [Plugin 介绍](./Plugin.md)
-- [Plugin 源码分析](./plugin-source-code.md)
 
 ## Containerd 源码阅读
+- [Plugin 源码分析](./plugin-source-code.md)

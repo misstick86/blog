@@ -2,7 +2,7 @@
 
 K8s提供了很多开箱即用的workload(Deployment, StatefulSet, Job, Pod), 在实际的使用中，这些也能满足我们绝大部份的需求.  像我们对外提供一个标准的HTTP服务时,采用的形式就是Deployment + Service + Ingress.  这个时候业务开发者就需要写上述三个资源的YAML文件. 其实这个不一定是完全必要的, 我们可以对其进行在次抽象，将其打包在一起为一个资源(假设叫做: WebResource). 这样对于同一种模式的应用部署时候，我们就可以操作`WebResource`既可.
 
-**Kubernetes**本身就提供了一个简单的可以让我们自定义对应资源的功能. **CRD**(CustomResourceDefinitions) 这是一种可以让kubernetes认识我们自己定义了的资源的功能.  我们简单来理解一下什么CRD.
+**Kubernetes**本身就提供了一个简单的可以让我们自定义对应资源的功能. **CRD**(CustomResourceDefinitions) 这是一种可以让kubernetes认识我们自己定义了的资源的功能.  我们简单来了解一下什么CRD.
 
 #### CRD本身也是一种资源
 
