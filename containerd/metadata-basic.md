@@ -151,3 +151,7 @@ key=snapshotKey, value=nginx-1
 key=snapshotter, value=overlayfs
 ...
 ```
+
+元数据在bucket中存储是一种层级格式, 以不通的namesapce进行分割.具体可参考:
+
+[https://github.com/containerd/containerd/blob/main/metadata/buckets.go#L27](https://github.com/containerd/containerd/blob/main/metadata/buckets.go#L27)

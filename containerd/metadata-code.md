@@ -38,6 +38,7 @@ type DB struct {
 [https://github.com/containerd/containerd/blob/main/services/namespaces/local.go#L118](https://github.com/containerd/containerd/blob/main/services/namespaces/local.go#L118)
 
 在 *Create* 函数内部调用的是 *withStoreUpdate* 函数,  这个函数会调用**DB** 数据结构的一个*Update* 方法,  这个函数接受的是带有如下参数的函数:
+
 ```go
 func(tx *bolt.Tx) error {
 
