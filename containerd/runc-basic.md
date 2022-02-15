@@ -66,11 +66,5 @@ runc spec --rootless
 runc --root /tmp/runc run mycontainerid
 ```
 
-## libcontainer
 
-libcontainer 提供了原生的go实现用于创建带有 *Namespace*, *Cgroup*, *file system* 访问控制的容器.  它也允许你在创建容器之后执行一些管理的操作.
-
-#### container
-
-容器时一个自包含的执行环境, 它共享宿主机的内核,并和其他容器相互隔离.
 
