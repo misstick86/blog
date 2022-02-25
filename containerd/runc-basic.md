@@ -67,4 +67,11 @@ runc --root /tmp/runc run mycontainerid
 ```
 
 
+## go-runc
+
+containerd 社区并没有在代码直接引用runc的代码, 而是将runc命令封装成为一个基础库. 这个基础库便是 [go-runc](https://github.com/containerd/go-runc)  项目.
+
+作为开发者我们可以任意的修改这个项目来添加我们需要的功能.
+
+
 
