@@ -1,6 +1,6 @@
 根据CSI基础可知, 用户写的Driver需要事先注册到kubernetes系统中, 这篇文章主要介绍用户写的驱动如何和**node-driver-register**, **kubelet**交互, 并最终注册到Kubernetes系统中.
 
-这里会以**[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 的Disk Plugin 插件做分析,也算是对于这部分的源码解读.
+这里会以`[alibaba-cloud-csi-driver]`(https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver) 的Disk Plugin 插件做分析,也算是对于这部分的源码解读.
 
 
 

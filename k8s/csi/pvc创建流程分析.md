@@ -1,4 +1,4 @@
-这篇文章将以Disk Plugin为列, 分析一下一个PVC 创建完成之后调用对应的Stroage Classs 创建PV的整个流程, 会涉及一下组件**[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)**,   **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 的源码.
+这篇文章将以Disk Plugin为列, 分析一下一个PVC 创建完成之后调用对应的Stroage Classs 创建PV的整个流程, 会涉及一下组件 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)**,  **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 的源码.
 
 > 阿里云对 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 做了一部分修改, 拿不到内部的版本,所以就以 [external-provisioner](https://github.com/kubernetes-csi/external-provisioner) 1.16版本进行分析了.
 
@@ -410,7 +410,7 @@ func (ctrl *ProvisionController) deleteVolumeOperation(volume *v1.PersistentVolu
 
 ## 总结
 
-以上便是创建一个PVC和删除PV时**[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 和  **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)**  两个组件的交互流程.  其中还有很多的细节没有写出来, 但不妨碍对整个流程的理解. 
+以上便是创建一个PVC和删除PV时 **[external-provisioner](https://github.com/kubernetes-csi/external-provisioner)** 和  **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)**  两个组件的交互流程.  其中还有很多的细节没有写出来, 但不妨碍对整个流程的理解. 
 
 
 

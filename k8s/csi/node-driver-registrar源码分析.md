@@ -28,7 +28,7 @@
 在启动 **node-driver-registrar** 时我们需要传递两个Unix socket 参数:
 
 * `--csi-address` 
-  * 这是一个被挂载到 node-driver-registrar 容器内部的一个路径, 它是一个socket文件.  node-driver-registrar 同过它和CSI Plugin通信。
+  * 这是一个被挂载到 node-driver-registrar 容器内部的一个路径, 它是一个socket文件.  node-driver-registrar 通过它和CSI Plugin通信。
 
 * `--kubelet-registration-path`
   * 这是一个Node节点上的路径, kubelet将同过它发送CSI操作. 注意:  这不是 上述的 *Registration socket* 路径.
