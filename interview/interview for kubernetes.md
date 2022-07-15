@@ -29,6 +29,7 @@ Cgroups全称Control Groups，是Linux内核提供的物理资源隔离机制，
 
 Linux Namespace是Linux提供的一种内核级别环境隔离的方法, 提供了对UTS、IPC、mount、PID、network、User等的隔离机制。
 
+
 #### kube-scheduler 调度策略
 
 请参考[kube-scheduler调度解析](https://github.com/misstick86/my_blog/tree/master/k8s/Kube-scheduler)
@@ -45,7 +46,7 @@ containerd 是一个标准的容器运行时管理工具, 并提供标的CRI接�
 
 ![cri](https://f.v1.n0.cdn.getcloudapp.com/items/0I3X2U0S0W3r1D1z2O0Q/Image%202016-12-19%20at%2017.13.16.png)
 
-从图中可以看出CRI是一个kubelet和容器管理平台的中间层, CRI本地定义了许多和容器、镜像操作的接口.  如**RunPodSandbox*, **CreateContainer** 等等. 这样kubelet就只会面对一个同一个接口, 而对于每个容器管理平台只需要实现对应接口既可, 这即实现了解耦也给用户更多的选择.
+从图中可以看出CRI是一个kubelet和容器管理平台的中间层, CRI本地定义了许多和容器、镜像操作的接口.  如 **RunPodSandbox**,  **CreateContainer** 等等. 这样kubelet就只会面对同一个接口, 而对于每个容器管理平台只需要实现对应接口既可, 这即实现了解耦也给用户更多的选择.
 
 [CRI 介绍](https://kubernetes.io/blog/2016/12/container-runtime-interface-cri-in-kubernetes/)
 
@@ -135,11 +136,11 @@ informer 是client-go库的核心组件,  它实现了kubernetes中事件的**�
 
 #### 如何开发一个controller
 
-k8s本省提供了一个名字为**CRD**的资源, 用户可以编写对应的yaml文件然后apply到k8s系统中. 这样系统中就会存在你在CRD中定义的资源, 其本省和k8s自带的pod, deployment, service没什么区别.
+k8s本身提供了一个名字为**CustomResourceDefinitions**的资源, 用户可以编写对应的yaml文件然后apply到k8s系统中. 这样系统中就会存在你在CRD中定义的资源, 其本省和k8s自带的pod, deployment, service没什么区别.
 
 而我们需要开发的controller便是同过监控对应的资源变化创建或者删除等操作.
 
-关于controller的开发指南可参考: [controller 开发指南](https://github.com/misstick86/my_blog/blob/master/k8s/crd/controller%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.md)
+关于controller的开发可参考: [controller 开发指南](https://github.com/misstick86/my_blog/blob/master/k8s/crd/controller%E5%BC%80%E5%8F%91%E6%8C%87%E5%8D%97.md)
 
 官方提供的[controller demo](https://github.com/kubernetes/sample-controller)
 
