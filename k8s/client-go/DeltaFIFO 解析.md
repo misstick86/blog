@@ -2,7 +2,7 @@
 
 `DelatFIFO`是一个传统的先进先出队列,它从ListWatcher中接收数据，并将数据发送给informer。和`FIFO`队列不同主要在两个方面.
 
-- 
+
 
 
 

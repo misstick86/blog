@@ -1,4 +1,4 @@
-![cient-go 框架图](../static/images/k8s/client-go-controller-interaction.jpeg)
+![cient-go 框架图](../../static/images/k8s/client-go-controller-interaction.jpeg)
 
 以上是client-go各个组件的交互图, 今天我们要讨论的是关于**Workqueue** 这个组件如何设计和工作的.
 
