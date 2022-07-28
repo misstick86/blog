@@ -1,10 +1,9 @@
-这篇文章是关于[node-driver-registrar](https://github.com/kubernetes-csi/node-driver-registrar)这个项目的源码剖析, 理解它能够更好的理解CSI的整个工作流程.
-
+这篇文章是关于 [node-driver-registrar](https://github.com/kubernetes-csi/node-driver-registrar)这个项目的源码剖析, 理解它能够更好的理解CSI的整个工作流程.
 
 
 #### 介绍
 
-**node-driver-registrar** 是一个为自定义插件提供向kubelet注册的sidecar容器; 同时也为kubelet执行mount/umount时操作来调用对应插件.
+**node-driver-registrar** 是一个为自定义插件提供向kubelet注册的sidecar容器; 同时也为kubelet执行 `mount`, `umount`操作时进行调用的插件.
 
 首先, 我们先了解一下有关的两个Socket.
 
@@ -17,7 +16,6 @@
 - CSI driver socket:
 
   * 用于 kubelet 和 csi-driver 交互
-
   * 被 csi-driver创建
   * 通过 Kubelet 以外的其他地方的主机路径暴露在 Kubernetes 节点上。
   * 这事一个被 `--csi-address` 和 `--kubelet-registration-path` 引用的路径
@@ -31,11 +29,10 @@
   * 这是一个被挂载到 node-driver-registrar 容器内部的一个路径, 它是一个socket文件.  node-driver-registrar 通过它和CSI Plugin通信。
 
 * `--kubelet-registration-path`
-  * 这是一个Node节点上的路径, kubelet将同过它发送CSI操作. 注意:  这不是 上述的 *Registration socket* 路径.
+  * 这是一个Node节点上的路径, kubelet将同过它发送CSI操作. 注意:  这不是 上述的 `Registration socket` 路径.
 
 
-
-从后面的参数传递来看, 这两个参数都是 CSI Plugin 的 sock 通信地址, 也就是说, **node-driver-registrar** 是直接和我们的 **CSI Plugin** 通信的, kubelet 获取到 **CSI Plugin** 的 sock 地址后也直接和 CSI Plugin 通信.
+从后面的参数传递来看, 这两个参数都是 CSI Plugin 的 sock 监听的地址, 其中, `--csi-address` 是 **node-driver-registrar** 直接和我们的 **CSI Plugin** 通信的, `--kubelet-registration-path` 是 **kubelet** 获取到 **CSI Plugin** 的 sock 地址后也直接和 CSI Plugin 通信.
 
 
 
@@ -109,7 +106,7 @@ main() 函数主要实现了三个功能:
 ###### 2. nodeRegister() 函数
 
 - 调用 newRegistrationServer() 函数初始化 registrationServer 结构体；
-- 创建出插件注册的sock地址, 并验证改地址是否合法. 如: 验证sock的权限和是否存在.
+- 创建出插件注册的sock地址, 并验证该地址是否合法. 如: 验证sock的权限和是否存在.
 - 为sock文件分配700的权限
 - 启动一个通过unix socket 通信的 GRPC Service, 这个 RPC 对外暴露两个接口: `GetInfo` 和 `NotifyRegistrationStatus`.
 
@@ -118,9 +115,7 @@ main() 函数主要实现了三个功能:
 [https://github.com/kubernetes-csi/node-driver-registrar/blob/release-1.2/cmd/csi-node-driver-registrar/node_register.go#L31](https://github.com/kubernetes-csi/node-driver-registrar/blob/release-1.2/cmd/csi-node-driver-registrar/node_register.go#L31)
 
 
-
 ###### 3. registrationServer结构体和接口
-
 
 
 **registrationServer 结构体**
@@ -133,14 +128,14 @@ type registrationServer struct {
 }
 ```
 
-- `driverName` : CSI Plugin 插件的名字, 对应阿里云的Disk 插件就是**diskplugin.csi.alibabacloud.com**.
+- `driverName` : CSI Plugin 插件的名字, 对应阿里云的 Disk CSI Plugin 就是**diskplugin.csi.alibabacloud.com**.
 - `endpoint`: kubelet 和 CSI Plugin 通信的sock文件地址.
 
 
 
 **GetInfo() 函数** 
 
-kubelet 同过调动 **node-driver-registrar** 的 *Getinfo()* 函数来获取插件的名称以及 GRPC 暴露的 Sock 地址.
+kubelet 同过调动 **node-driver-registrar** 的 `Getinfo()` 接口函数来获取插件的名称以及 CSI Plugin 暴露的 GRPC Sock 地址.
 
 ```go
 // GetInfo is the RPC invoked by plugin watcher
@@ -159,7 +154,7 @@ func (e registrationServer) GetInfo(ctx context.Context, req *registerapi.InfoRe
 
 **NotifyRegistrationStatus() 函数**
 
-kubelet 通过调用 Node-Driver-Registrar 的 NotifyRegistrationStatus 接口，通知注册 csi plugin 成功。
+kubelet 通过调用 node-driver-registrar 的 `NotifyRegistrationStatus()` 接口，通知注册 csi plugin 成功。
 
 ```go
 func (e registrationServer) NotifyRegistrationStatus(ctx context.Context, status *registerapi.RegistrationStatus) (*registerapi.RegistrationStatusResponse, error) {
@@ -181,15 +176,15 @@ func (e registrationServer) NotifyRegistrationStatus(ctx context.Context, status
 
 ###### 第一步
 
-**node-driver-registrar** 启动后根据配置的 CSI Plugin 地址调用  *GetPluginInfo* 接口获取 driver 的名字.
+**node-driver-registrar** 启动后根据配置的 CSI Plugin 地址调用  `GetPluginInfo` 接口获取 driver 的名字.
 
 ###### 第二步
 
-在目录 `/registration` 下创建一个以`{driver-name}`-reg.sock的文件,并通过它提供一个 GRPC 服务, 该服务提供两这个接口,分别是**GetInfo**, **NotifyRegistrationStatus**.
+在目录 `/registration` 下创建一个以`{driver-name}`-reg.sock的文件,并通过它提供一个 GRPC 服务, 该服务提供两这个接口,分别是**GetInfo()**, **NotifyRegistrationStatus()**.
 
 ###### 第三步
 
-kubelet 会有一个组件叫做**Plugin watch**, 这个组件会不停的监听 */var/lib/kubelet/plugins_registry/* 目录下文件的创建来完成后续 CSI 的注册.
+kubelet 会有一个组件叫做 **Plugin watch**, 这个组件会不停的监听 */var/lib/kubelet/plugins_registry/* 目录下文件的改变来完成后续 CSI 的注册.
 
 ![csi-register-1](../../static/images/k8s/csi-register-1.png)
 

@@ -1,10 +1,9 @@
-根据CSI基础可知, 用户写的Driver需要事先注册到kubernetes系统中, 这篇文章主要介绍用户写的驱动如何和**node-driver-register**, **kubelet**交互, 并最终注册到Kubernetes系统中.
+根据CSI基础可知, 用户写的Driver需要事先注册到kubernetes系统中, 这篇文章主要介绍用户写的驱动如何和 **node-driver-register**,  **kubelet** 交互, 并最终注册到Kubernetes系统中.
 
-这里会以`[alibaba-cloud-csi-driver]`(https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver) 的Disk Plugin 插件做分析,也算是对于这部分的源码解读.
+这里会以 [alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver) 的Disk Plugin 插件做分析,也算是对于这部分的源码解读.
 
 
-
-### (一)部署
+### 部署
 
 Kubernetes 提供了一个叫做CSIDriver的资源,如果我们想将DISK这个插件注册到kubernetes的CSI中,需要先创建对应的CSI Driver对象。
 
@@ -18,7 +17,7 @@ spec:
   podInfoOnMount: true
 ```
 
-**Node-driver-register** 是官方提供注册的一个组件, 他和用户写的驱动程序一起以Demonset的方式部署在kubernetes之上.对于用户每开发一个新的Driver都必须部署一个**Node-driver-register** sidecar 容器, 可以看到阿里云部署了三个Sidecar容器. 分别是 **DiskPlugin**, **OSSPlugin**, **NasPlugin**. 
+**node-driver-register** 是官方提供注册的一个组件, 他和用户写的驱动程序一起以Demonset的方式部署在kubernetes之上.对于用户每开发一个新的Driver都必须部署一个**node-driver-register** sidecar 容器, 可以看到阿里云部署了三个Sidecar容器. 分别是 **DiskPlugin**, **OSSPlugin**, **NasPlugin**. 
 
 [https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver/blob/master/deploy/disk/disk-plugin.yaml#L9](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver/blob/master/deploy/disk/disk-plugin.yaml#L9)
 
@@ -26,11 +25,11 @@ spec:
 
 #### 流程
 
-在介绍 [node-driver-registrar](https://github.com/kubernetes-csi/node-driver-registrar) 时, [node-driver-registrar](https://github.com/kubernetes-csi/node-driver-registrar) 会在 `/registration/` 创建一个以插件名命名的sock文件, `kubelet` 中会有有一个组件叫做 **pluginmanager** , 它会监听这个目录下面的文件创建、删除事件, 来处理后续的 CSI 注册任务.
+在上一节介绍 [node-driver-registrar](https://github.com/kubernetes-csi/node-driver-registrar) 时, [node-driver-registrar](https://github.com/kubernetes-csi/node-driver-registrar) 会在 `/registration/` 目录下创建一个以插件名命名的sock文件, 而 `kubelet` 组件中会有一个叫做 **PluginManager** 的子组件, 它会监听这个目录下面的文件创建、删除事件, 来处理后续的 CSI 注册任务.
 
 
 
-### (二)Kubelet Plugin Manager 源码解析
+### Kubelet Plugin Manager 源码解析
 
 源码中的注释是这样解释的: **Plugin Manager** 是一个异步的循环, 它知道哪些插件是要注册的, 哪些插件取消注册并使其注册或取消.
 
@@ -86,7 +85,7 @@ type Watcher struct {
 
 #### Cache 
 
-*Cache* 是一个缓存当前系统中插件状态的组件,他分别定义了两个**状态**(也可以称之为缓存): **ActualStateOfWorld** 和 **DesiredStateOfWorld**。 
+`Cache` 是一个缓存当前系统中插件状态的组件,他分别定义了两个**状态**(也可以称之为缓存): **ActualStateOfWorld** 和 **DesiredStateOfWorld**。 
 
 **ActualStateOfWorld** 和 **DesiredStateOfWorld** 的结构体是一样的, 但对于这两种状态所有进行的操作是不一样的. 他们的结构体如下:
 
@@ -122,7 +121,7 @@ type desiredStateOfWorld or ActualStateOfWorld struct {
 
 #### operationexecutor 
 
-**operationexecutor** 定义了一组注册和取消注册插件的集合并同过 `NewGoRoutineMap` 进行执行. `NewGoRoutineMap` 将防止在同一个sock文件路径上触发多个操作.
+**operationexecutor** 定义了一组注册或取消注册插件的集合, 并同过 `NewGoRoutineMap` 进行执行. `NewGoRoutineMap` 将防止在同一个sock文件路径上触发多个操作.
 
 对于注册和取消注册应该该是幂等的, 例如: **RegisterPlugin**应该返回成功如果一个插件已经注册了. 然而这依赖插件的 **handler** 实现这一行为.
 
@@ -202,7 +201,7 @@ klet.pluginManager = pluginmanager.NewPluginManager(
 
 **Plugin Manager** 的运行是从**Kubelet** 运行开始的，这一层的逻辑还是比较复杂的. 调用链如下:
 
-`kubeler的Run()` --> `updateRuntimeUp()` --> `initializeRuntimeDependentModules()` 
+`kubelet的Run()` --> `updateRuntimeUp()` --> `initializeRuntimeDependentModules()` 
 
 在 *initializeRuntimeDependentModules()* 中才是正则启动**Plugin Manager**.  首先是为 **Plugin Manager** 对应类型的 Plugin 添加Handler. 然后 **Plugin Manager** 的 *RUN()* 以一个 gorounte 启动. **RUN()** 函数做的事情如下:
 
@@ -285,7 +284,7 @@ func (w *Watcher) Start(stopCh <-chan struct{}) error {
 3. 将目录添加到 *fsnotify* 的监听器中, 并遍历当前目录下所有目录将其加到 *fsnotify* 监听器中.
 4. 启动 *fsnotify* 监听器.
 
-当监听的目录下有事件发生时便调用对应的处理方法, 如果是 *ADD* 事件调用*handleCreateEvent()*方法, 如果是 *DEL* 事件则调用 *handleDeleteEvent()* 方法.
+当监听的目录下有事件发生时便调用对应的处理方法, 如果是 *ADD* 事件调用`handleCreateEvent()` 方法, 如果是 *DEL* 事件则调用 `handleDeleteEvent()` 方法.
 
 **w.handleCreateEvent(event)** 的处理逻辑如下:
 
@@ -363,17 +362,17 @@ func (w *Watcher) handlePluginRegistration(socketPath string) error {
 
 ###### RegisterPlugin()函数
 
-这两个函数的调用逻辑链都比较负责, 先整体给出一个调用逻辑链:
+这两个函数的调用逻辑链都比较复杂, 先整体给出一个调用逻辑链:
 
 `rc.operationExecutor.RegisterPlugin` --> `oe.operationGenerator.GenerateRegisterPluginFunc` --> `handler.RegisterPlugin()` --> `nim.InstallCSIDriver()` --> `nim.updateNode()`
 
 *GenerateRegisterPluginFunc()* 函数是执行注册插件的主要方法, 它的主要逻辑如下:
 
-(1) 根据 Plugin 的 sock 地址实例化一个GRPC客户端, 调用**node-driver-registrar**的*Getinfo()*方法获取Plugin的信息.
+(1) 根据 Plugin 的 sock 地址实例化一个GRPC客户端, 调用 **node-driver-registrar** 的`Getinfo()` 方法获取Plugin的信息.
 
-(2) 根据 *Getinfo()* 返回的信息, 确定Plugin的类型,来取得对应的*Handler*.
+(2) 根据 `Getinfo()` 返回的信息, 确定Plugin的类型,来取得对应的 Handler.
 
-(3) 调用 handler.ValidatePlugin()，检查已注册的 plugin 中是否有比该需要注册的 plugin 同名的的更高的版本，如有，则返回注册失败，并通知 plugin 注册失败；
+(3) 调用 handler.ValidatePlugin()，检查已注册的 plugin 中是否有比该需要注册的 plugin 同名的或更高的版本，如有，则返回注册失败，并通知 plugin 注册失败；
 
 (4): 向**actualStateOfWorld**新增一个Plugin.
 
@@ -447,7 +446,12 @@ func (w *Watcher) handlePluginRegistration(socketPath string) error {
 	kl.pluginManager.AddHandler(pluginwatcherapi.DevicePlugin, kl.containerManager.GetPluginRegistrationHandler())
 ```
 
-可以看到 `kl.pluginManager.AddHandler` 是添加一个 Handler 的方法, 参数 *pluginwatcherapi.CSIPlugin* 是一个表示Handler类型的字符串, 这里为`CSIPlugin`. 表示注册一个*CSI Plugin* 的Handler. *plugincache.PluginHandler* 表示一个接口. 这个接口需要实现一下方法: `ValidatePlugin()`, `RegisterPlugin()`, `DeRegisterPlugin()` .
+可以看到 `kl.pluginManager.AddHandler` 是添加一个 Handler 的方法, kubelet 系统中提供了两类插件:
+
+- 一个是 CSI Plugin,参数是: *pluginwatcherapi.CSIPlugin*;
+- 另一个是 Device Plugin,参数是: *pluginwatcherapi.DevicePlugin*. 
+
+这里为`CSIPlugin`,  表示注册一个*CSI Plugin* 和处理它的Handler. *plugincache.PluginHandler* 表示一个接口. 这个接口需要实现一下方法: `ValidatePlugin()`, `RegisterPlugin()`, `DeRegisterPlugin()` .
 
 **csi.PluginHandler** 表示是实现了一个*plugincache.PluginHandler* 一个接口的组件.
 
@@ -473,7 +477,7 @@ func (h *RegistrationHandler) RegisterPlugin(pluginName string, endpoint string,
 	})
 
 	// Get node info from the driver.
-  // 实例化一个和cli Plugin 通信的Client
+  // 实例化一个和csi Plugin 通信的Client
 	csi, err := newCsiDriverClient(csiDriverName(pluginName))
 	if err != nil {
 		return err

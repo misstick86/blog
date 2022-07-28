@@ -35,7 +35,7 @@
   
   * [Plugin 注册流程](./k8s/csi/Plugin注册流程.md)
   
-  * [PVC 创建流程](./k8s/csi/pvc创建流程分析.md)
+  * [PVC 创建流程](pvc创建流程分析(四).md)
   
     
 

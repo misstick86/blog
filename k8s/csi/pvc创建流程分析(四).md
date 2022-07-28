@@ -4,12 +4,12 @@
 
 #### 部署
 
-在阿里云的集群中部署cis主要有两个部分, 一个是以Demonset运行的 **csi-plugin**. 另一个则是以Deployment运行的**csi-provisioner**. 
+在阿里云的集群中部署CSI主要有两个部分, 一个是以Demonset运行的 **csi-plugin**. 另一个则是以Deployment运行的**csi-provisioner**. 
 
 - **csi-provisioner** 主要是的负责创建PVC后执行创建磁盘, 挂载到Node的操作.
 - **csi-plugin** 主要是负责和kubelet交互,用于Plugin的注册, Node中磁盘挂载到目录操作.
 
-csi-provisioner 中的各个容器是以Sidecar形式运行在一起的.  以Disk Plugin为列, Disk Plugin一共部署了三个容器: **csi-provisioner**, **csi-attacher**, **csi-resizer**
+**csi-provisioner** 中的各个容器是以Sidecar形式运行在一起的.  以Disk Plugin为列, Disk Plugin一共部署了三个容器: **csi-provisioner**, **csi-attacher**, **csi-resizer**
 
 ```yaml
 - args:

@@ -2,13 +2,13 @@
 
 
 
-> 默认情况下,监听Pod引用Volume的组件是Kube-controller-manager的ADController组件, 这里就主要介绍一下这个组件.
+> 默认情况下,监听Pod引用Volume的组件是 `Kube-controller-manager` 的 `ADController` 组件, 这里就主要介绍一下这个组件.
 
 #### AdController的作用
 
 AdController 全称为Attachment/Detachment 控制器, 主要赋值监听Pod中有关volume的变化, 然后根据调度的Node,创建、删除对应的VolumeAttachment 对象（对于CSI Plugin 而言）, 顺便在更新一下Node.Status.VolumesAttached的状态.
 
-从CSI的角度来看, AdController只会负责创建或删除VolumeAttachment对象, 而不会真正的执行挂载或者卸载操作. 这一部分真正的打工人是 **CSI-attacher** 这个项目. CSI-attacher 会watch到VolumeAttachmentd的资源变化, 然后调用 **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 的 **Controller** 组件. 整体来说, CSI-attacher也只是一个桥梁, 只做了一些更新VolumeAttachment的操作,  alibaba-cloud-csi-driver 负责调用云厂商的 API 来将哪个volume挂载哪个Node上.
+从CSI的角度来看, AdController只会负责创建或删除VolumeAttachment对象, 而不会真正的执行挂载或者卸载操作. 这一部分真正的打工人是 **CSI-attacher** 这个项目. CSI-attacher 会watch到VolumeAttachmentd的资源变化, 然后调用 **[alibaba-cloud-csi-driver](https://github.com/kubernetes-sigs/alibaba-cloud-csi-driver)** 的 **Controller** 组件. 整体来说, CSI-attacher也只是一个桥梁, 只做了一些更新 `VolumeAttachment` 的操作,  alibaba-cloud-csi-driver 负责调用云厂商的 API 来将哪个volume挂载哪个Node上.
 
 
 
@@ -311,7 +311,7 @@ rc.attacherDetacher.AttachVolume() --> operationGenerator.GenerateAttachVolumeFu
 	}
 ```
 
-CSI 不负责实际的Attach操作, 它只是创建一个VolumeAttachment资源.
+AdController 不负责实际的Attach操作, 它只是创建一个VolumeAttachment资源.
 
 ```go
 func (c *csiAttacher) Attach(spec *volume.Spec, nodeName types.NodeName) (string, error) {
