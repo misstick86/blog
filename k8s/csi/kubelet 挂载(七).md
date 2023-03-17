@@ -1,1 +1,0 @@
-当磁盘挂载到Node之后, kubelet中的VolumeManagerReconciler控制循环会发现磁盘已经被挂载到主机的某个目录了,  周变调用NodeStageVolume和NodePublishVolume方法完成磁盘的Mounut阶段.

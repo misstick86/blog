@@ -9,6 +9,12 @@
 
 由Google的 [btree](https://github.com/google/btree) 存储的一个keyIndex值. `KeyIndex` 存储的是某个的key的修改版本.  全局之中只有一个B-Tree. 
 
+#### TreeIndex为什么使用btree
+
+btree是存储在内存之中, 并且支持范围查询, 如果使用hash表或者AVL树之内的数据结构, AVL由于是一个平衡二叉树, 数据高度会很大, 对于较多读的情况下反而影响速度.
+
+
+
 
 #### ETCD数据不能太大的原因
 

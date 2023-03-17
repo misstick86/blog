@@ -4,5 +4,7 @@
 ### Obsidian ###
 # config dir
 .obsidian/
+other/
+
 
 # End of https://www.toptal.com/developers/gitignore/api/obsidian

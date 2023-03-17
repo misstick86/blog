@@ -142,6 +142,8 @@ Go的内存分配主要采用的是Google的TaMelloc思想.  首先, 将分配�
 指令集 -gcflags 用于将标识参数传递给 Go 编译器, -m 会打印出逃逸分析的优化策略。
 
 
+
+
 #### 讲讲go的GC  
 
 参考: [go 内存回收](https://zhuanlan.zhihu.com/p/297177002)
@@ -166,4 +168,6 @@ channle 未初始化,触发一个**fatal error**.
 Pool 主要思想是控制 goroutine 的数量, 事先生成一定的goroutine等待任务的到来. 在设计上任务可以同过channel传递.
 
 
+
+#### Go 中json序列化的缺点
 
